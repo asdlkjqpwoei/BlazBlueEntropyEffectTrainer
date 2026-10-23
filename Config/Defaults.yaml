@@ -1,0 +1,214 @@
+game:
+  module: 'GameAssembly.dll'
+  unity_version: '2022.3.62f2'
+  il2cpp_version: 31
+  type_name_offset: 0x10
+  identity_min_type_matches: 3
+
+language: 'zh-CN'
+
+monitor:
+  process_check_ms: 2000
+  value_check_ms: 750
+  rescan_ms: 15000
+  stable_rescan_ms: 60000
+  scan_chunk_bytes: 1048576
+  max_scan_mib: 2048
+  max_objects_per_type: 4096
+  max_dynamic_refresh_candidates: 100000
+  max_resource_value: 1000000
+  max_refresh_value: 10000
+  max_write_candidates: 16
+
+window:
+  width: 380
+  height: 364
+
+hotkeys:
+  refresh_add: '1'
+  exchange_add: '2'
+  ap_add: '3'
+
+defaults:
+  refresh_set: 99
+  refresh_add: 10
+  exchange_set: 9999
+  exchange_add: 500
+  ap_set: 9999
+  ap_add: 1000
+
+puerts_runtime:
+  model_script: 'Data/Js/Server/Model/BreedDungeon.js'
+  model_map_field: 'ForceMapName'
+  singleton_field: '_instance'
+
+type_info:
+  STFesActor:
+    rva: 0x52f4e20
+    class_name: 'STFesActor'
+  STBreedDungeon:
+    rva: 0x52f2c58
+    class_name: 'STBreedDungeon'
+  STBreedDungeonDevice:
+    rva: 0x52f2dd0
+    class_name: 'STBreedDungeonDevice'
+  STBreedDungeonRoom:
+    rva: 0x52f33b0
+    class_name: 'STBreedDungeonRoom'
+  STBreedDungeonStageSelectRewards:
+    rva: 0x52f3818
+    class_name: 'STBreedDungeonStageSelectRewards'
+  STBreedDungeonRandomInfo:
+    rva: 0x5355978
+    class_name: 'RandomInfo'
+  STBreedDungeonResourceInfo:
+    rva: 0x5355af8
+    class_name: 'ResourceInfo'
+  STBreedDungeonRewardInfo:
+    rva: 0x5355c70
+    class_name: 'RewardInfo'
+  STExploreDungeon:
+    rva: 0x52f4ca8
+    class_name: 'STExploreDungeon'
+  DungeonActiveInfo:
+    rva: 0x52d5eb8
+    class_name: 'DungeonActiveInfo'
+  STExploreDungeonRewardInfo:
+    rva: 0x5357430
+    class_name: 'RewardInfo'
+  ExploreDungeonResource:
+    rva: 0x52e88d0
+    class_name: 'ExploreDungeonResource'
+  STBreedDungeonBaseInfo:
+    rva: 0x5355210
+    class_name: 'BaseInfo'
+  STBreedDungeonPhase:
+    rva: 0x52f30c0
+    class_name: 'STBreedDungeonPhase'
+
+features:
+  refresh:
+    label: '单人模式刷新次数'
+    puerts_array:
+      length: 19
+      resource_index: 14
+      object_length_offset: 0x8
+      elements_offset: 0x10
+      entry_stride: 0x8
+      value_high_word_offset: 0x4
+      map_instance_type_offset: 0xc
+      parent_properties_offset: 0x8
+      parent_elements_offset: 0x10
+      fixed_array_instance_type: 0x77
+      parent_instance_type: 0x421
+    roots: []
+
+  exchange:
+    label: '兑换点'
+    puerts_resource_index: 5
+
+  ap:
+    label: 'AP 点'
+    model_script: 'Data/Js/Server/Model/PlayerSplitStruct.js'
+    prototype_method: 'BuildCurrencyPack'
+    currency_id: 1
+
+texts:
+  title: {zh-CN: '苍翼：混沌效应修改器', en-US: 'Blazblue Trainer'}
+  subtitle: {zh-CN: '快捷键仅在游戏前台生效；修改数量使用当前增量。', en-US: 'Shortcuts work only while the game is foreground and use the current increase amount.'}
+  language: {zh-CN: '界面语言', en-US: 'Interface language'}
+  waiting: {zh-CN: '等待游戏启动', en-US: 'Waiting for game'}
+  checking: {zh-CN: '正在校验游戏', en-US: 'Verifying game'}
+  scanning: {zh-CN: '正在自动定位资源', en-US: 'Locating resources'}
+  ready: {zh-CN: '已连接 · 持续监测', en-US: 'Connected · monitoring'}
+  no_targets: {zh-CN: '等待有效游戏数据', en-US: 'Waiting for valid game data'}
+  refresh_calibrating: {zh-CN: '正在校验刷新次数', en-US: 'Verifying refreshes'}
+  unsupported_build: {zh-CN: '游戏版本特征不匹配', en-US: 'Unsupported game build'}
+  access_denied: {zh-CN: '无法读取游戏，请检查运行权限', en-US: 'Game access denied; check permissions'}
+  process_error: {zh-CN: '检测游戏时发生错误', en-US: 'Game detection error'}
+  title_refresh: {zh-CN: '刷新次数', en-US: 'Refreshes'}
+  title_exchange: {zh-CN: '兑换点', en-US: 'Exchange points'}
+  title_ap: {zh-CN: 'AP 点', en-US: 'AP points'}
+  ap_unavailable: {zh-CN: '当前配置未提供已验证的 AP 活动模型；不会修改 AP。', en-US: 'No verified AP model is configured; AP will not be modified.'}
+  set: {zh-CN: '设置', en-US: 'Set'}
+  add: {zh-CN: '增加', en-US: 'Add'}
+  set_placeholder: {zh-CN: '设置为', en-US: 'Set to'}
+  add_placeholder: {zh-CN: '增加数量', en-US: 'Increase'}
+  refresh_hint: {zh-CN: '设置当前剩余次数；增加在实际剩余次数上累加。', en-US: 'Set remaining refreshes, or add to the actual remaining count.'}
+  process_connected: {zh-CN: '游戏已连接并通过类型特征校验。', en-US: 'The game is connected and its type signature is verified.'}
+  process_waiting: {zh-CN: '尚未发现兼容的游戏进程。', en-US: 'No compatible game process has been found.'}
+  value_detected: {zh-CN: '有效地址：{0}；当前值范围：{1}–{2}', en-US: 'Valid targets: {0}; current range: {1}–{2}'}
+  value_blocked: {zh-CN: '发现 {0} 个候选地址；安全保护已禁用写入。', en-US: '{0} candidates found; writing is blocked for safety.'}
+  value_not_detected: {zh-CN: '等待数据', en-US: 'Waiting for data'}
+  value_safety_blocked: {zh-CN: '安全保护', en-US: 'Safety block'}
+  input_error: {zh-CN: '请输入有效的非负整数。', en-US: 'Enter a valid non-negative integer.'}
+  operation_succeeded: {zh-CN: '修改成功。', en-US: 'Change applied.'}
+  operation_no_address: {zh-CN: '当前没有有效地址，后台仍在自动扫描。', en-US: 'No valid target is available; automatic scanning continues.'}
+  operation_safety_error: {zh-CN: '安全校验未通过，未修改游戏内存。', en-US: 'Safety validation failed; game memory was not modified.'}
+  initialization_failed: {zh-CN: '初始化失败', en-US: 'Initialization failed'}
+  monitor_start_failed: {zh-CN: '监测器启动失败', en-US: 'Monitor failed to start'}
+  timer_failed: {zh-CN: '无法创建界面计时器', en-US: 'Cannot create the interface timer'}
+  snapshot_failed: {zh-CN: '读取状态失败', en-US: 'Cannot read trainer status'}
+
+diagnostics:
+  not_connected: {zh-CN: '尚未连接兼容的游戏进程。', en-US: 'A compatible game process is not connected.'}
+  negative_amount: {zh-CN: '目标值或增量不能为负数。', en-US: 'A target value or increment cannot be negative.'}
+  safe_limit: {zh-CN: '请求的数值超过配置的安全上限。', en-US: 'The requested value exceeds the configured safe limit.'}
+  unsupported_operation: {zh-CN: '不支持该操作。', en-US: 'Unsupported operation.'}
+  unsupported_feature: {zh-CN: '不支持该修改功能。', en-US: 'Unsupported trainer feature.'}
+  engine_missing: {zh-CN: '修改器引擎尚未初始化。', en-US: 'Trainer engine is not initialized.'}
+  config_missing: {zh-CN: '必须提供配置文件路径。', en-US: 'A configuration path is required.'}
+  config_open: {zh-CN: '无法打开修改器配置文件。', en-US: 'Cannot open the trainer configuration.'}
+  locale_open: {zh-CN: '无法打开语言配置文件。', en-US: 'Cannot open the localization configuration.'}
+  locale_missing: {zh-CN: '缺少中英双语文本目录。', en-US: 'The bilingual text catalog is missing.'}
+  snapshot_arguments: {zh-CN: '必须提供引擎和状态输出对象。', en-US: 'A trainer engine and snapshot destination are required.'}
+  write_arguments: {zh-CN: '必须提供引擎和写入计数输出对象。', en-US: 'A trainer engine and write-count destination are required.'}
+  yaml_error: {zh-CN: 'YAML 配置错误：', en-US: 'YAML configuration error: '}
+  config_error: {zh-CN: '配置文件错误：', en-US: 'Configuration file error: '}
+  required_key: {zh-CN: '缺少必要配置项：', en-US: 'Missing required configuration key: '}
+  scalar_key: {zh-CN: '配置项必须是标量：', en-US: 'Configuration key must be a scalar: '}
+  missing_text: {zh-CN: '缺少界面文本：', en-US: 'Missing interface text: '}
+  bilingual_text: {zh-CN: '每条文本必须提供中文和英文翻译。', en-US: 'Every text must provide zh-CN and en-US translations.'}
+  empty_text: {zh-CN: '翻译内容不能为空。', en-US: 'Translations must not be empty.'}
+  default_language: {zh-CN: '默认语言必须为 zh-CN 或 en-US。', en-US: 'The default language must be zh-CN or en-US.'}
+  invalid_language: {zh-CN: '不支持所选语言。', en-US: 'Unsupported interface language.'}
+  unknown_config: {zh-CN: '加载修改器配置时发生未知错误。', en-US: 'Unknown error while loading trainer configuration.'}
+  unknown_write: {zh-CN: '执行修改时发生未知错误。', en-US: 'Unknown error while applying the requested change.'}
+  thread_start: {zh-CN: '无法启动监测线程：', en-US: 'Could not start the monitor thread: '}
+  ap_changed: {zh-CN: '设置 AP 保存标记前，所属对象已改变。', en-US: 'The AP owner changed before its save-dirty flag could be set.'}
+  rollback_changed: {zh-CN: '回滚前，已写入的字段发生了变化。', en-US: 'A previously written field changed before rollback.'}
+  write_aborted: {zh-CN: '写入已中止：', en-US: 'The write was aborted: '}
+  rollback_incomplete: {zh-CN: '。未能安全恢复所有已写入字段：', en-US: '. Rollback could not restore every earlier field: '}
+  rollback_complete: {zh-CN: '。已回滚之前的写入。', en-US: '. Earlier writes were rolled back.'}
+  hotkey_register: {zh-CN: '无法注册快捷键 ', en-US: 'Cannot register hotkey '}
+  hotkey_duplicate: {zh-CN: '各功能的快捷键不能重复。', en-US: 'Feature hotkeys must not overlap.'}
+  hotkey_empty: {zh-CN: '快捷键包含空的按键或修饰键。', en-US: 'A hotkey contains an empty key or modifier.'}
+  hotkey_modifiers: {zh-CN: '快捷键仅支持不重复的 Ctrl、Alt、Shift 和 Win 修饰键。', en-US: 'Hotkeys support distinct Ctrl, Alt, Shift and Win modifiers.'}
+  hotkey_function: {zh-CN: '功能键范围必须为 F1 至 F24。', en-US: 'Function hotkeys must be F1 through F24.'}
+  hotkey_key: {zh-CN: '快捷键末尾必须是主键盘数字、字母或 F1–F24。', en-US: 'A hotkey must end with a main-keyboard digit, letter, or F1-F24.'}
+  window_invalid: {zh-CN: '窗口逻辑尺寸超出允许范围。', en-US: 'Window dimensions must be bounded logical-pixel sizes.'}
+  window_missing: {zh-CN: '无法取得修改器的原生窗口。', en-US: 'The trainer native window is unavailable.'}
+  window_style: {zh-CN: '无法禁用窗口手动缩放', en-US: 'Cannot disable window resizing'}
+  window_attach: {zh-CN: '无法绑定窗口行为', en-US: 'Cannot attach trainer window behavior'}
+  foreground_hook: {zh-CN: '无法监测前台窗口变化', en-US: 'Cannot monitor foreground changes'}
+  window_calculate: {zh-CN: '无法计算 DPI 窗口尺寸', en-US: 'Cannot calculate the DPI-aware window size'}
+  window_position: {zh-CN: '无法读取窗口位置', en-US: 'Cannot read the trainer window position'}
+  window_resize: {zh-CN: '无法按当前显示器调整窗口', en-US: 'Cannot resize the trainer for the current display'}
+  display_area: {zh-CN: '当前显示器没有可用的客户区。', en-US: 'The current display has no usable client area.'}
+  executable_path: {zh-CN: '无法确定修改器的程序目录。', en-US: 'Could not determine the trainer executable path.'}
+  utf8_invalid: {zh-CN: '界面文本不是有效的 UTF-8。', en-US: 'Invalid UTF-8 interface text.'}
+  utf8_convert: {zh-CN: '无法转换界面文本编码。', en-US: 'Could not convert the interface text.'}
+  game_exited: {zh-CN: '兼容的游戏进程已退出。', en-US: 'The compatible game process exited.'}
+  game_not_found: {zh-CN: '未发现加载目标游戏模块的进程。', en-US: 'No running process with the configured GameAssembly module was found.'}
+  resolving_models: {zh-CN: '正在解析局内及局外货币模型单例。', en-US: 'Resolving the named Puerts dungeon and currency model singletons.'}
+  resolving_il2cpp: {zh-CN: '正在解析 IL2CPP 类型并扫描私有内存。', en-US: 'Resolving IL2CPP type information and scanning committed private memory.'}
+  model_constructors: {zh-CN: 'Puerts 模型构造函数：', en-US: 'Puerts model constructors: '}
+  authoritative_path: {zh-CN: '；活动对象链：', en-US: '; authoritative path: '}
+  refresh_index: {zh-CN: '；刷新索引 ', en-US: '; refresh index '}
+  exchange_index: {zh-CN: '，兑换点索引 ', en-US: ', exchange index '}
+  ap_constructors: {zh-CN: '；AP 货币构造函数：', en-US: '; AP currency constructors: '}
+  changed_regions: {zh-CN: '；已恢复的变化内存区域：', en-US: '; changed memory regions handled: '}
+  ap_path: {zh-CN: '；AP 对象链：', en-US: '; AP path: '}
+  scan_complete: {zh-CN: '（完整类扫描）', en-US: ' (complete named-class scan)'}
+  scan_incomplete: {zh-CN: '（类扫描未完成）', en-US: ' (incomplete named-class scan)'}
+  cached_class: {zh-CN: '（缓存身份已复核）', en-US: ' (cached identity revalidated)'}

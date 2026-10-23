@@ -1,0 +1,15 @@
+Checks: '-*,readability-identifier-naming'
+HeaderFilterRegex: '.*[\\/]Source[\\/].*'
+CheckOptions:
+  readability-identifier-naming.NamespaceCase: CamelCase
+  readability-identifier-naming.NamespaceIgnoredRegexp: '^(winrt|implementation|factory_implementation)$'
+  readability-identifier-naming.FunctionCase: CamelCase
+  readability-identifier-naming.FunctionIgnoredRegexp: '^(main|wWinMain)$'
+  readability-identifier-naming.MethodCase: CamelCase
+  readability-identifier-naming.VariableCase: CamelCase
+  readability-identifier-naming.ParameterCase: CamelCase
+  readability-identifier-naming.MemberCase: CamelCase
+  readability-identifier-naming.ConstantCase: CamelCase
+  readability-identifier-naming.EnumConstantCase: CamelCase
+  readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
+  readability-identifier-naming.IgnoreMainLikeFunctions: 'true'
