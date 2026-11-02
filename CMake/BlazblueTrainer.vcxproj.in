@@ -14,6 +14,7 @@
     <TrainerBinaryRoot>@XmlBinaryRoot@</TrainerBinaryRoot>
     <TrainerIntermediateRoot>@XmlIntermediateRoot@</TrainerIntermediateRoot>
     <MSBuildProjectExtensionsPath>$(TrainerIntermediateRoot)\NuGet\</MSBuildProjectExtensionsPath>
+    <VcpkgEnabled>false</VcpkgEnabled>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -57,11 +58,11 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;UNICODE;_UNICODE;$(TrainerDependencyDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IntDir);$(TrainerSourceRoot)\Source\BlazblueTrainer\Application;$(TrainerSourceRoot)\Source\BlazblueTrainer\Core;$(TrainerSourceRoot)\Source\BlazblueTrainer\Public;$(TrainerYamlInclude);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(IntDir);$(TrainerSourceRoot)\Source\BlazblueTrainer\Application;$(TrainerSourceRoot)\Source\BlazblueTrainer\Core;$(TrainerSourceRoot)\Source\BlazblueTrainer\Public;$(TrainerYamlInclude);$(TrainerLz4Include);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>$(TrainerYamlLibrary);comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(TrainerYamlLibrary);$(TrainerLz4Library);comctl32.lib;winmm.lib;shell32.lib;ole32.lib;advapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Manifest><AdditionalManifestFiles>$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles></Manifest>
   </ItemDefinitionGroup>
@@ -70,12 +71,16 @@
 @HeaderItems@
     <ApplicationDefinition Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType><XamlRuntime>WinUI</XamlRuntime></ApplicationDefinition>
     <Page Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType><XamlRuntime>WinUI</XamlRuntime></Page>
+    <Page Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyWindow.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType><XamlRuntime>WinUI</XamlRuntime></Page>
     <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml.h"><DependentUpon>App.xaml</DependentUpon></ClInclude>
     <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml.h"><DependentUpon>MainWindow.xaml</DependentUpon></ClInclude>
     <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Pch.h" />
+    <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\UiHelpers.h" />
+    <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyWindow.xaml.h"><DependentUpon>DataBodyWindow.xaml</DependentUpon></ClInclude>
     <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Pch.cpp"><PrecompiledHeader>Create</PrecompiledHeader></ClCompile>
     <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml.cpp"><DependentUpon>App.xaml</DependentUpon></ClCompile>
     <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml.cpp"><DependentUpon>MainWindow.xaml</DependentUpon></ClCompile>
+    <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyWindow.xaml.cpp"><DependentUpon>DataBodyWindow.xaml</DependentUpon></ClCompile>
     <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
     <ClCompile Include="$(GeneratedFilesDir)XamlMetaDataProvider.cpp" />
     <ClCompile Include="$(IntDir)XamlTypeInfo.g.cpp" />
@@ -91,5 +96,6 @@
     <MakeDir Directories="$(OutDir)Config" />
     <Copy SourceFiles="$(TrainerSourceRoot)\Config\Defaults.yaml" DestinationFiles="$(OutDir)Config\Defaults.yaml" SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(TrainerYamlRuntime)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="'$(TrainerYamlRuntime)' != ''" />
+    <Copy SourceFiles="$(TrainerLz4Runtime)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="'$(TrainerLz4Runtime)' != ''" />
   </Target>
 </Project>

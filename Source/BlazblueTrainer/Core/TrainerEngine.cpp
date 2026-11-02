@@ -466,7 +466,7 @@ namespace Trainer
                             Text("checking"),
                             AttachDetail,
                             true,
-                            true,
+                            !Attach.RuntimeVerificationRequired,
                             false);
                     }
                     else if (Attach.Status == AttachStatus::UnsupportedBuild)
@@ -911,7 +911,7 @@ namespace Trainer
         SetStatus(
             TrainerStateScanning, Text("scanning"),
             "Resolving the named Puerts dungeon and currency model singletons.",
-            true, true, true);
+            true, false, true);
         std::vector<std::uintptr_t> Constructors;
         std::vector<std::uintptr_t> ApConstructors;
         {
@@ -982,7 +982,7 @@ namespace Trainer
         }
         SetStatus(
             TrainerStateScanning, Text("scanning"),
-            Detail.str(), true, true, false);
+            Detail.str(), true, !Constructors.empty() || !ApConstructors.empty(), false);
         RefreshSnapshot(Process);
         return Constructors.empty() || (Settings.PuertsAp && ApConstructors.empty());
     }

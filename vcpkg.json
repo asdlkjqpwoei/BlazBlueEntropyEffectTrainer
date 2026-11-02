@@ -3,6 +3,7 @@
   "version-string": "0.1.0",
   "builtin-baseline": "d6eee3dba8766a176e08ee4c741ae0b166ebbfcd",
   "dependencies": [
-    "yaml-cpp"
+    "yaml-cpp",
+    "lz4"
   ]
 }

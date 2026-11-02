@@ -3,6 +3,22 @@
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
+  <Target Name="DeduplicateWindowsAppRuntimeInitializer"
+          BeforeTargets="WarnCompileDuplicatedFilename;ClCompile">
+    <ItemGroup>
+      <TrainerRuntimeInitializer Include="@(ClCompile)"
+          Condition="'%(ClCompile.Filename)%(ClCompile.Extension)' == 'WindowsAppRuntimeAutoInitializer.cpp'" />
+    </ItemGroup>
+    <RemoveDuplicates Inputs="@(TrainerRuntimeInitializer)">
+      <Output TaskParameter="Filtered" ItemName="TrainerUniqueRuntimeInitializer" />
+    </RemoveDuplicates>
+    <ItemGroup>
+      <ClCompile Remove="@(TrainerRuntimeInitializer)" />
+      <ClCompile Include="@(TrainerUniqueRuntimeInitializer)" />
+      <TrainerRuntimeInitializer Remove="@(TrainerRuntimeInitializer)" />
+      <TrainerUniqueRuntimeInitializer Remove="@(TrainerUniqueRuntimeInitializer)" />
+    </ItemGroup>
+  </Target>
   <UsingTask TaskName="BlazblueRunMetadataMerge" TaskFactory="RoslynCodeTaskFactory"
              AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>

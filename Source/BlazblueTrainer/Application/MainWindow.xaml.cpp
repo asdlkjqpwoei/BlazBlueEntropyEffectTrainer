@@ -1,6 +1,10 @@
 #include "Pch.h"
 #include "MainWindow.xaml.h"
 #include "Paths.h"
+#include "AudioFeedback.h"
+#include "UiHelpers.h"
+#include "DataBodyWindow.xaml.h"
+#include "RemoteProcess.h"
 #if __has_include("MainWindow.g.cpp")
 #include "MainWindow.g.cpp"
 #endif
@@ -20,21 +24,6 @@
 
 namespace
 {
-    winrt::hstring Utf8ToHString(std::string_view Text)
-    {
-        if (Text.empty())
-            return {};
-        const int Required = MultiByteToWideChar(
-            CP_UTF8, MB_ERR_INVALID_CHARS, Text.data(), static_cast<int>(Text.size()), nullptr, 0);
-        if (Required <= 0)
-            throw std::runtime_error("Invalid UTF-8 interface text.");
-        std::wstring Wide(static_cast<std::size_t>(Required), L'\0');
-        if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, Text.data(),
-                static_cast<int>(Text.size()), Wide.data(), Required) != Required)
-            throw std::runtime_error("Could not convert the interface text.");
-        return winrt::hstring(Wide);
-    }
-
     void SetTooltip(
         winrt::Microsoft::UI::Xaml::DependencyObject const& Control, const winrt::hstring& Text)
     {
@@ -61,6 +50,8 @@ namespace winrt::BlazblueTrainer::implementation
             InterfaceTexts = Trainer::Localization::Load(ConfigPath);
             InterfaceLanguage = InterfaceTexts->DefaultLanguage;
             const auto Configuration = Trainer::LoadConfig(ConfigPath);
+            GameConfiguration = Configuration;
+            PresenceMonitor = std::make_shared<Trainer::GamePresenceMonitor>(Configuration);
             Preferred = Configuration.Window;
             Bindings = Configuration.Hotkeys;
             std::array<char, 1024> Error{};
@@ -94,7 +85,13 @@ namespace winrt::BlazblueTrainer::implementation
             check_hresult(WindowNative->get_WindowHandle(&Handle));
             NativeBehavior = std::make_unique<Trainer::WindowBehavior>(
                 Handle, Preferred, std::move(Bindings),
-                [this](TrainerFeature Feature) { ApplyAddFeature(Feature); },
+                [this](TrainerFeature Feature)
+                {
+                    const bool Applied = ApplyAddFeature(Feature);
+                    std::string AudioError;
+                    if (!Trainer::PlayHotkeyFeedback(Applied, AudioError))
+                        ShowOperationMessage(AudioError);
+                },
                 [this](const std::string& Error) { ShowOperationMessage(Error); });
         }
         catch (const std::exception& Error)
@@ -159,6 +156,7 @@ namespace winrt::BlazblueTrainer::implementation
         RefreshTitleText().Text(Utf8ToHString(ReadText("title_refresh")));
         ExchangeTitleText().Text(Utf8ToHString(ReadText("title_exchange")));
         ApTitleText().Text(Utf8ToHString(ReadText("title_ap")));
+        SaveEditorButton().Content(box_value(Utf8ToHString(ReadText("databody_open"))));
         SetTooltip(RefreshTitleText(), Utf8ToHString(ReadText("refresh_hint")));
         for (const auto& Button : {RefreshSetButton(), ExchangeSetButton(), ApSetButton()})
             Button.Content(box_value(Utf8ToHString(ReadText("set"))));
@@ -171,6 +169,7 @@ namespace winrt::BlazblueTrainer::implementation
         if (!LastOperation.empty())
             OperationText().Text(Utf8ToHString(InterfaceTexts->Translate(LastOperation, InterfaceLanguage)));
         LastDetail.clear();
+        DisplayedPresence.reset();
         IsApplyingLanguage = false;
     }
 
@@ -217,32 +216,35 @@ namespace winrt::BlazblueTrainer::implementation
         return Value;
     }
 
-    void MainWindow::ApplyFeature(TrainerFeature Feature, TrainerOperation Operation,
+    bool MainWindow::ApplyFeature(TrainerFeature Feature, TrainerOperation Operation,
         Microsoft::UI::Xaml::Controls::TextBox const& Input)
     {
         if (!EngineHandle || IsShuttingDown)
-            return;
+            return false;
         const auto Amount = ReadAmount(Input);
         if (!Amount)
         {
             ShowOperationMessage(ReadText("input_error"));
-            return;
+            return false;
         }
         std::array<char, 1024> Error{};
         std::int32_t Writes{};
-        TrainerApply(EngineHandle, Feature, Operation, *Amount, &Writes, Error.data(), Error.size());
+        const bool Applied = TrainerApply(
+            EngineHandle, Feature, Operation, *Amount, &Writes, Error.data(), Error.size()) != 0;
         ShowOperationMessage(Error.data());
         UpdateSnapshot();
+        return Applied;
     }
 
-    void MainWindow::ApplyAddFeature(TrainerFeature Feature)
+    bool MainWindow::ApplyAddFeature(TrainerFeature Feature)
     {
         switch (Feature)
         {
-        case TrainerFeatureRefresh: ApplyFeature(Feature, TrainerOperationAdd, RefreshAddInput()); break;
-        case TrainerFeatureExchange: ApplyFeature(Feature, TrainerOperationAdd, ExchangeAddInput()); break;
-        case TrainerFeatureAp: ApplyFeature(Feature, TrainerOperationAdd, ApAddInput()); break;
+        case TrainerFeatureRefresh: return ApplyFeature(Feature, TrainerOperationAdd, RefreshAddInput());
+        case TrainerFeatureExchange: return ApplyFeature(Feature, TrainerOperationAdd, ExchangeAddInput());
+        case TrainerFeatureAp: return ApplyFeature(Feature, TrainerOperationAdd, ApAddInput());
         }
+        return false;
     }
 
     void MainWindow::SetDefaultInputs()
@@ -309,6 +311,17 @@ namespace winrt::BlazblueTrainer::implementation
         }
         SetValueLabels(Snapshot);
         SetWriteEnabled(Snapshot);
+        if (PresenceMonitor)
+        {
+            const auto Presence = PresenceMonitor->Snapshot();
+            if (!DisplayedPresence || *DisplayedPresence != Presence)
+            {
+                DisplayedPresence = Presence;
+                SaveEditorButton().IsEnabled(Presence.State == Trainer::GameRunState::Stopped);
+                SetTooltip(SaveEditorButton(), Utf8ToHString(ReadText(
+                    Presence.State == Trainer::GameRunState::Stopped ? "databody_offline_hint" : "databody_game_running")));
+            }
+        }
     }
 
     void MainWindow::Shutdown()
@@ -317,6 +330,12 @@ namespace winrt::BlazblueTrainer::implementation
             return;
         IsShuttingDown = true;
         NativeBehavior.reset();
+        if (DataBodyEditor)
+        {
+            DataBodyEditor.Close();
+            DataBodyEditor = nullptr;
+        }
+        PresenceMonitor.reset();
         if (SnapshotTimer)
         {
             SnapshotTimer.Stop();
@@ -339,4 +358,27 @@ namespace winrt::BlazblueTrainer::implementation
     { ApplyFeature(TrainerFeatureAp, TrainerOperationSet, ApSetInput()); }
     void MainWindow::OnAddApClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&)
     { ApplyAddFeature(TrainerFeatureAp); }
+
+    void MainWindow::OnOpenDataBodyEditor(
+        Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&)
+    {
+        if (!PresenceMonitor) return;
+        const auto Presence = PresenceMonitor->Snapshot();
+        if (Presence.State != Trainer::GameRunState::Stopped)
+        {
+            ShowOperationMessage(ReadText("databody_game_running"));
+            return;
+        }
+        if (!DataBodyEditor)
+        {
+            DataBodyEditor = winrt::make<DataBodyWindow>(InterfaceLanguage, PresenceMonitor);
+            const auto Weak = get_weak();
+            DataBodyEditor.Closed([Weak](auto const&, auto const&)
+            {
+                if (const auto Self = Weak.get())
+                    Self->DataBodyEditor = nullptr;
+            });
+        }
+        DataBodyEditor.Activate();
+    }
 }

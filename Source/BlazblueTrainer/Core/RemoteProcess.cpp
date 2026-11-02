@@ -1,6 +1,7 @@
 #include "RemoteProcess.h"
 
 #include "Il2CppScanner.h"
+#include "GameData.h"
 
 #include <tlhelp32.h>
 
@@ -8,6 +9,8 @@
 #include <sstream>
 #include <stdexcept>
 #include <utility>
+#include <map>
+#include <mutex>
 
 namespace Trainer
 {
@@ -165,6 +168,56 @@ namespace Trainer
             return Found;
         }
 
+        std::optional<bool> DiskGameIdentity(DWORD ProcessId, std::string& Error)
+        {
+            HANDLE Process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, ProcessId);
+            if (!Process)
+            {
+                Error = Win32Error("OpenProcess", GetLastError());
+                return std::nullopt;
+            }
+            std::wstring Image(32768, L'\0');
+            DWORD Length = static_cast<DWORD>(Image.size());
+            const bool Read = QueryFullProcessImageNameW(Process, 0, Image.data(), &Length) != FALSE;
+            const auto ReadError = GetLastError();
+            CloseHandle(Process);
+            if (!Read)
+            {
+                Error = Win32Error("QueryFullProcessImageName", ReadError);
+                return std::nullopt;
+            }
+            Image.resize(Length);
+            const auto Metadata = std::filesystem::path(Image).parent_path() /
+                L"BlazblueEntropyEffect_Data" / L"il2cpp_data" / L"Metadata" / L"global-metadata.dat";
+            std::error_code FileError;
+            const auto Time = std::filesystem::last_write_time(Metadata, FileError);
+            if (FileError == std::errc::no_such_file_or_directory)
+                return false;
+            if (FileError)
+            {
+                Error = "Cannot inspect the candidate game's metadata: " + FileError.message();
+                return std::nullopt;
+            }
+            struct CachedIdentity {std::filesystem::file_time_type Time; bool Matches;};
+            static std::mutex CacheMutex;
+            static std::map<std::filesystem::path, CachedIdentity> Cache;
+            std::lock_guard Lock(CacheMutex);
+            if (const auto Found = Cache.find(Metadata); Found != Cache.end() && Found->second.Time == Time)
+                return Found->second.Matches;
+            try
+            {
+                const bool Matches = RemoteProcess::HasGameMetadataIdentity(Metadata);
+                if (Cache.size() > 256) Cache.clear();
+                Cache.insert_or_assign(Metadata, CachedIdentity{Time, Matches});
+                return Matches;
+            }
+            catch (const std::runtime_error& Exception)
+            {
+                Error = Exception.what();
+                return std::nullopt;
+            }
+        }
+
     }
 
     RemoteProcess::RemoteProcess(
@@ -251,13 +304,22 @@ namespace Trainer
                 const ClassPointerMap MatchingTypes = Scanner.ResolveClasses(UnresolvedTypes);
                 if (MatchingTypes.size() < Configuration.IdentityMinTypeMatches)
                 {
-                    ProfileMismatchSeen = true;
-                    continue;
+                    std::string IdentityError;
+                    const auto DiskIdentity = DiskGameIdentity(Entry.th32ProcessID, IdentityError);
+                    if (!CanProbeUpdatedRuntime(Configuration, Entry.szExeFile) &&
+                        !(Configuration.PuertsRuntime && DiskIdentity && *DiskIdentity))
+                    {
+                        ProfileMismatchSeen = true;
+                        continue;
+                    }
+                    Result.RuntimeVerificationRequired = true;
                 }
 
                 Result.Status = AttachStatus::Attached;
                 Result.Process = std::move(Process);
-                Result.Message = "Compatible GameAssembly process detected (PID " +
+                Result.Message = Result.RuntimeVerificationRequired
+                    ? "Updated game detected; validating authoritative runtime models before enabling writes."
+                    : "Compatible GameAssembly process detected (PID " +
                     std::to_string(Entry.th32ProcessID) + "; " +
                     std::to_string(MatchingTypes.size()) + "/" +
                     std::to_string(Configuration.TypeProfile.size()) + " IL2CPP type markers matched).";
@@ -283,6 +345,73 @@ namespace Trainer
             Result.Message = "No running process with the configured GameAssembly module was found.";
         }
         return Result;
+    }
+
+    bool RemoteProcess::CanProbeUpdatedRuntime(
+        const Config& Configuration, std::wstring_view Executable)
+    {
+        const auto Expected = Utf8ToWide(Configuration.ExecutableName);
+        return Configuration.PuertsRuntime && Configuration.PuertsArray &&
+            CompareStringOrdinal(Executable.data(), static_cast<int>(Executable.size()),
+                Expected.data(), static_cast<int>(Expected.size()), TRUE) == CSTR_EQUAL;
+    }
+
+    bool RemoteProcess::HasGameMetadataIdentity(const std::filesystem::path& Metadata)
+    {
+        const auto Data = ReadBinaryFile(Metadata);
+        if (Data.size() < 8 || Data[0] != 0xaf || Data[1] != 0x1b || Data[2] != 0xb1 || Data[3] != 0xfa)
+            return false;
+        const std::string_view Strings(reinterpret_cast<const char*>(Data.data()), Data.size());
+        return Strings.find("STFesActorPack") != std::string_view::npos &&
+            Strings.find("STPlayerNewFesActorPack") != std::string_view::npos &&
+            Strings.find("EBreedDungeonResType") != std::string_view::npos &&
+            Strings.find("Puerts") != std::string_view::npos;
+    }
+
+    GamePresence RemoteProcess::ObserveGamePresence(const Config& Configuration)
+    {
+        const auto Expected = Utf8ToWide(Configuration.ExecutableName);
+        HANDLE Snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+        if (Snapshot == INVALID_HANDLE_VALUE)
+            return {GameRunState::Unknown, Win32Error("CreateToolhelp32Snapshot", GetLastError())};
+        PROCESSENTRY32W Entry{};
+        Entry.dwSize = sizeof(Entry);
+        if (!Process32FirstW(Snapshot, &Entry))
+        {
+            const auto Error = GetLastError();
+            CloseHandle(Snapshot);
+            return {GameRunState::Unknown, Win32Error("Process32First", Error)};
+        }
+        do
+        {
+            if (CompareStringOrdinal(Entry.szExeFile, -1, Expected.c_str(), -1, TRUE) == CSTR_EQUAL)
+            {
+                CloseHandle(Snapshot);
+                return {GameRunState::Running, {}};
+            }
+            ModuleDetails Module;
+            if (Entry.th32ProcessID > 4 && Entry.th32ProcessID != GetCurrentProcessId() &&
+                FindModule(Entry.th32ProcessID, Utf8ToWide(Configuration.Module), Module))
+            {
+                std::string Error;
+                const auto Matches = DiskGameIdentity(Entry.th32ProcessID, Error);
+                if (!Matches)
+                {
+                    CloseHandle(Snapshot);
+                    return {GameRunState::Unknown, Error};
+                }
+                if (*Matches)
+                {
+                    CloseHandle(Snapshot);
+                    return {GameRunState::Running, {}};
+                }
+            }
+        } while (Process32NextW(Snapshot, &Entry));
+        const auto Error = GetLastError();
+        CloseHandle(Snapshot);
+        if (Error != ERROR_NO_MORE_FILES)
+            return {GameRunState::Unknown, Win32Error("Process32Next", Error)};
+        return {GameRunState::Stopped, {}};
     }
 
     bool RemoteProcess::IsAlive() const

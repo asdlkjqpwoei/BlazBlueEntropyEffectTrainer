@@ -9,11 +9,15 @@
 @FilterItems@
     <ApplicationDefinition Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml"><Filter>Application</Filter></ApplicationDefinition>
     <Page Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml"><Filter>Application</Filter></Page>
+    <Page Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyWindow.xaml"><Filter>Application</Filter></Page>
     <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml.h"><Filter>Application</Filter></ClInclude>
     <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml.h"><Filter>Application</Filter></ClInclude>
     <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Pch.h"><Filter>Application</Filter></ClInclude>
     <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml.cpp"><Filter>Application</Filter></ClCompile>
     <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml.cpp"><Filter>Application</Filter></ClCompile>
+    <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyWindow.xaml.cpp"><Filter>Application</Filter></ClCompile>
+    <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyWindow.xaml.h"><Filter>Application</Filter></ClInclude>
+    <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\UiHelpers.h"><Filter>Application</Filter></ClInclude>
     <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Pch.cpp"><Filter>Application</Filter></ClCompile>
     <Midl Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Types.idl"><Filter>Application</Filter></Midl>
     <None Include="$(TrainerSourceRoot)\Config\Defaults.yaml"><Filter>Config</Filter></None>

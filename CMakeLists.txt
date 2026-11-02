@@ -1,12 +1,28 @@
 cmake_minimum_required(VERSION 4.2)
 
-if(NOT DEFINED CMAKE_TOOLCHAIN_FILE AND DEFINED ENV{VCPKG_ROOT})
-    file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}" VcpkgRoot)
-    if(NOT EXISTS "${VcpkgRoot}/scripts/buildsystems/vcpkg.cmake")
-        message(FATAL_ERROR "VCPKG_ROOT does not contain scripts/buildsystems/vcpkg.cmake.")
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE AND NOT DEFINED ENV{CMAKE_TOOLCHAIN_FILE})
+    if(DEFINED VCPKG_ROOT AND NOT VCPKG_ROOT STREQUAL "")
+        file(TO_CMAKE_PATH "${VCPKG_ROOT}" VcpkgRoot)
+    elseif(DEFINED ENV{VCPKG_ROOT} AND NOT "$ENV{VCPKG_ROOT}" STREQUAL "")
+        file(TO_CMAKE_PATH "$ENV{VCPKG_ROOT}" VcpkgRoot)
+    elseif(NOT CMAKE_PREFIX_PATH AND "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "" AND
+           NOT yaml-cpp_DIR AND NOT lz4_DIR)
+        find_program(VcpkgExecutable NAMES vcpkg NO_CACHE)
+        if(VcpkgExecutable)
+            file(REAL_PATH "${VcpkgExecutable}" VcpkgExecutablePath)
+            get_filename_component(VcpkgRoot "${VcpkgExecutablePath}" DIRECTORY)
+        endif()
     endif()
-    set(CMAKE_TOOLCHAIN_FILE "${VcpkgRoot}/scripts/buildsystems/vcpkg.cmake"
-        CACHE FILEPATH "User-configured vcpkg toolchain")
+    if(VcpkgRoot)
+        if(NOT EXISTS "${VcpkgRoot}/scripts/buildsystems/vcpkg.cmake")
+            message(FATAL_ERROR
+                "The selected vcpkg root does not contain scripts/buildsystems/vcpkg.cmake. "
+                "Set -DVCPKG_ROOT=<vcpkg installation root> or CMAKE_TOOLCHAIN_FILE explicitly.")
+        endif()
+        set(CMAKE_TOOLCHAIN_FILE "${VcpkgRoot}/scripts/buildsystems/vcpkg.cmake"
+            CACHE FILEPATH "Detected or user-configured vcpkg toolchain")
+        message(STATUS "Using vcpkg toolchain: ${CMAKE_TOOLCHAIN_FILE}")
+    endif()
 endif()
 if(NOT DEFINED VCPKG_TARGET_TRIPLET)
     set(VCPKG_TARGET_TRIPLET "x64-windows-static-md" CACHE STRING "vcpkg triplet")
@@ -26,6 +42,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMake")
 
 find_package(yaml-cpp CONFIG REQUIRED)
+find_package(lz4 CONFIG REQUIRED)
 option(BUILD_TESTING "Build the BlazblueTests module" ON)
 if(BUILD_TESTING)
     enable_testing()
@@ -40,7 +57,12 @@ set(NativeIntermediateDirectory "${CMAKE_CURRENT_BINARY_DIR}/Intermediate")
 file(MAKE_DIRECTORY "${NativeProjectDirectory}")
 
 set(TrainerSources
+    "${TrainerDirectory}/Core/AudioFeedback.cpp"
     "${TrainerDirectory}/Core/Config.cpp"
+    "${TrainerDirectory}/Core/DataBodyCatalog.cpp"
+    "${TrainerDirectory}/Core/DataBodySave.cpp"
+    "${TrainerDirectory}/Core/GameData.cpp"
+    "${TrainerDirectory}/Core/GamePresenceMonitor.cpp"
     "${TrainerDirectory}/Core/Hotkeys.cpp"
     "${TrainerDirectory}/Core/Il2CppScanner.cpp"
     "${TrainerDirectory}/Core/Localization.cpp"
@@ -48,6 +70,7 @@ set(TrainerSources
     "${TrainerDirectory}/Core/Paths.cpp"
     "${TrainerDirectory}/Core/PuertsRuntime.cpp"
     "${TrainerDirectory}/Core/RemoteProcess.cpp"
+    "${TrainerDirectory}/Core/SaveDocument.cpp"
     "${TrainerDirectory}/Core/TrainerApi.cpp"
     "${TrainerDirectory}/Core/TrainerEngine.cpp"
     "${TrainerDirectory}/Core/WindowBehavior.cpp"
@@ -118,7 +141,7 @@ if(BUILD_TESTING)
     add_executable(BlazblueTests ${TestSources} ${TrainerSources} ${TrainerHeaders})
     target_include_directories(BlazblueTests PRIVATE
         "${TrainerDirectory}/Core" "${TrainerDirectory}/Public" "${TestDirectory}")
-    target_link_libraries(BlazblueTests PRIVATE yaml-cpp::yaml-cpp comctl32)
+    target_link_libraries(BlazblueTests PRIVATE yaml-cpp::yaml-cpp lz4::lz4 comctl32 winmm shell32 ole32 advapi32)
     target_compile_definitions(BlazblueTests PRIVATE
         WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE)
     target_compile_options(BlazblueTests PRIVATE /W4 /permissive- /EHsc /utf-8)
@@ -134,6 +157,14 @@ if(BUILD_TESTING)
         add_custom_command(TARGET BlazblueTests POST_BUILD
             COMMAND "${CMAKE_COMMAND}" -E copy_if_different
                 "$<TARGET_FILE:yaml-cpp::yaml-cpp>" "$<TARGET_FILE_DIR:BlazblueTests>"
+            VERBATIM)
+    endif()
+    ResolveImportedLibrary(lz4::lz4 Lz4Target)
+    get_target_property(Lz4Type "${Lz4Target}" TYPE)
+    if(Lz4Type STREQUAL "SHARED_LIBRARY")
+        add_custom_command(TARGET BlazblueTests POST_BUILD
+            COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+                "$<TARGET_FILE:${Lz4Target}>" "$<TARGET_FILE_DIR:BlazblueTests>"
             VERBATIM)
     endif()
 endif()

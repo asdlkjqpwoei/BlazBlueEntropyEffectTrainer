@@ -3,6 +3,7 @@
 #include "MainWindow.g.h"
 #include "TrainerApi.h"
 #include "WindowBehavior.h"
+#include "GamePresenceMonitor.h"
 
 #include <winrt/Microsoft.UI.Dispatching.h>
 #include <winrt/Microsoft.UI.Xaml.h>
@@ -26,13 +27,14 @@ namespace winrt::BlazblueTrainer::implementation
         void OnSetApClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnAddApClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnLanguageChanged(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        void OnOpenDataBodyEditor(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
 
     private:
         std::string ReadText(const char* Key) const;
         std::optional<std::int64_t> ReadAmount(Microsoft::UI::Xaml::Controls::TextBox const& Input) const;
-        void ApplyFeature(TrainerFeature Feature, TrainerOperation Operation,
+        bool ApplyFeature(TrainerFeature Feature, TrainerOperation Operation,
             Microsoft::UI::Xaml::Controls::TextBox const& Input);
-        void ApplyAddFeature(TrainerFeature Feature);
+        bool ApplyAddFeature(TrainerFeature Feature);
         void UpdateSnapshot();
         void SetValueLabels(const TrainerSnapshot& Snapshot);
         void SetDefaultInputs();
@@ -49,6 +51,10 @@ namespace winrt::BlazblueTrainer::implementation
         std::optional<Trainer::Localization> InterfaceTexts;
         TrainerLanguage InterfaceLanguage{ TrainerLanguageChinese };
         bool IsApplyingLanguage{ true };
+        std::optional<Trainer::Config> GameConfiguration;
+        std::shared_ptr<Trainer::GamePresenceMonitor> PresenceMonitor;
+        std::optional<Trainer::GamePresence> DisplayedPresence;
+        Microsoft::UI::Xaml::Window DataBodyEditor{ nullptr };
         bool IsShuttingDown{};
     };
 }

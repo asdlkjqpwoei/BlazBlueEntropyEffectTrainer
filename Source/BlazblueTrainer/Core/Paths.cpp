@@ -21,4 +21,13 @@ namespace Trainer
     {
         return ExecutableDirectory() / L"Config" / L"Defaults.yaml";
     }
+
+    std::filesystem::path PathFromUtf8(std::string_view Text)
+    {
+        std::u8string Value;
+        Value.reserve(Text.size());
+        for (const auto Character : Text)
+            Value.push_back(static_cast<char8_t>(Character));
+        return std::filesystem::path(Value);
+    }
 }

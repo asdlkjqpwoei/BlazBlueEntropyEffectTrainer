@@ -8,6 +8,12 @@ int RunHotkeyTests();
 int RunWindowTests();
 int RunWindowIntegration();
 int RunLocalizationTests();
+int RunSaveTests();
+int RunFeedbackTests();
+int RunAudioProbe();
+int RunEditorPerformance(int ArgumentCount, char** Arguments);
+int RunResponsivenessTests();
+int RunDataBodyProbe(int ArgumentCount, char** Arguments);
 int RunRuntimeProbe(int ArgumentCount, char** Arguments);
 int RunEngineProbe(int ArgumentCount, char** Arguments);
 int RunScanProbe(int ArgumentCount, char** Arguments);
@@ -20,6 +26,12 @@ int main(int ArgumentCount, char** Arguments)
     {
         if (ArgumentCount > 1)
         {
+            if (std::strcmp(Arguments[1], "--editor-performance") == 0)
+                return RunEditorPerformance(ArgumentCount - 1, Arguments + 1);
+            if (std::strcmp(Arguments[1], "--audio-probe") == 0)
+                return RunAudioProbe();
+            if (std::strcmp(Arguments[1], "--databody-probe") == 0)
+                return RunDataBodyProbe(ArgumentCount - 1, Arguments + 1);
             if (std::strcmp(Arguments[1], "--window-integration") == 0)
                 return RunWindowIntegration();
             if (std::strcmp(Arguments[1], "--runtime-probe") == 0)
@@ -40,9 +52,13 @@ int main(int ArgumentCount, char** Arguments)
         const int HotkeyResult = RunHotkeyTests();
         const int WindowResult = RunWindowTests();
         const int LanguageResult = RunLocalizationTests();
-        if (CoreResult || RuntimeResult || HotkeyResult || WindowResult || LanguageResult)
+        const int SaveResult = RunSaveTests();
+        const int FeedbackResult = RunFeedbackTests();
+        const int ResponsivenessResult = RunResponsivenessTests();
+        if (CoreResult || RuntimeResult || HotkeyResult || WindowResult || LanguageResult ||
+            SaveResult || FeedbackResult || ResponsivenessResult)
             return 1;
-        std::cout << "Core, runtime ownership, localization, hotkeys, and DPI/window tests passed.\n";
+        std::cout << "Core, runtime ownership, localization, shortcuts/audio, offline saves, and DPI/window tests passed.\n";
         return 0;
     }
     catch (const std::exception& Error)

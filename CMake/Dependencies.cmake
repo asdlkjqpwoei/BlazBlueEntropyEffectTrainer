@@ -30,6 +30,23 @@ function(GetImportedArtifact Target Property Configuration Output)
     set(${Output} "${Value}" PARENT_SCOPE)
 endfunction()
 
+function(ResolveImportedLibrary Target Output)
+    foreach(Depth RANGE 0 8)
+        get_target_property(Type "${Target}" TYPE)
+        if(NOT Type STREQUAL "INTERFACE_LIBRARY")
+            set(${Output} "${Target}" PARENT_SCOPE)
+            return()
+        endif()
+        get_target_property(Links "${Target}" INTERFACE_LINK_LIBRARIES)
+        list(LENGTH Links Count)
+        if(NOT Count EQUAL 1 OR NOT TARGET "${Links}")
+            message(FATAL_ERROR "${Target} must resolve to one imported LZ4 library.")
+        endif()
+        set(Target "${Links}")
+    endforeach()
+    message(FATAL_ERROR "The imported LZ4 target chain is cyclic.")
+endfunction()
+
 function(WriteNativeDependencies Configuration)
     get_target_property(YamlType yaml-cpp::yaml-cpp TYPE)
     get_target_property(YamlIncludes yaml-cpp::yaml-cpp INTERFACE_INCLUDE_DIRECTORIES)
@@ -50,6 +67,19 @@ function(WriteNativeDependencies Configuration)
     EscapeXml("${YamlRuntime}" XmlYamlRuntime)
     EscapeXml("${YamlIncludes}" XmlYamlIncludes)
     EscapeXml("${YamlDefinitions}" XmlYamlDefinitions)
+    ResolveImportedLibrary(lz4::lz4 Lz4Target)
+    get_target_property(Lz4Type "${Lz4Target}" TYPE)
+    get_target_property(Lz4Includes "${Lz4Target}" INTERFACE_INCLUDE_DIRECTORIES)
+    set(Lz4Runtime "")
+    if(Lz4Type STREQUAL "SHARED_LIBRARY")
+        GetImportedArtifact("${Lz4Target}" IMPORTED_IMPLIB "${Configuration}" Lz4Library)
+        GetImportedArtifact("${Lz4Target}" IMPORTED_LOCATION "${Configuration}" Lz4Runtime)
+    else()
+        GetImportedArtifact("${Lz4Target}" IMPORTED_LOCATION "${Configuration}" Lz4Library)
+    endif()
+    EscapeXml("${Lz4Library}" XmlLz4Library)
+    EscapeXml("${Lz4Runtime}" XmlLz4Runtime)
+    EscapeXml("${Lz4Includes}" XmlLz4Includes)
     file(CONFIGURE OUTPUT "${NativeProjectDirectory}/Dependencies.${Configuration}.props"
         CONTENT "<?xml version=\"1.0\" encoding=\"utf-8\"?>
 <Project xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">
@@ -58,6 +88,9 @@ function(WriteNativeDependencies Configuration)
     <TrainerYamlRuntime>${XmlYamlRuntime}</TrainerYamlRuntime>
     <TrainerYamlInclude>${XmlYamlIncludes}</TrainerYamlInclude>
     <TrainerDependencyDefinitions>${XmlYamlDefinitions}</TrainerDependencyDefinitions>
+    <TrainerLz4Library>${XmlLz4Library}</TrainerLz4Library>
+    <TrainerLz4Runtime>${XmlLz4Runtime}</TrainerLz4Runtime>
+    <TrainerLz4Include>${XmlLz4Includes}</TrainerLz4Include>
   </PropertyGroup>
 </Project>
 " @ONLY)

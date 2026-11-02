@@ -246,6 +246,11 @@ namespace Trainer
 
         const YAML::Node Game = RequiredNode(Root, "game");
         Configuration.Module = RequiredString(Game, "module");
+        if (const auto Executable = Game["executable"]; Executable && !Executable.IsNull())
+            Configuration.ExecutableName = Executable.as<std::string>();
+        if (Configuration.ExecutableName.empty() ||
+            Configuration.ExecutableName.find_first_of("\\/:") != std::string::npos)
+            throw std::runtime_error("The game executable must be a file name, not an installation path.");
         Configuration.UnityVersion = RequiredString(Game, "unity_version");
         Configuration.Il2cppVersion = static_cast<std::uint32_t>(
             ParseUnsigned(RequiredNode(Game, "il2cpp_version"), "game.il2cpp_version"));

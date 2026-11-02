@@ -61,7 +61,12 @@ namespace Trainer
             "value_blocked", "value_not_detected", "value_safety_blocked", "input_error",
             "operation_succeeded", "operation_no_address", "operation_safety_error",
             "language", "set_placeholder", "add_placeholder", "initialization_failed",
-            "monitor_start_failed", "timer_failed", "snapshot_failed"
+            "monitor_start_failed", "timer_failed", "snapshot_failed",
+            "databody_open", "databody_title", "databody_offline_hint", "databody_game_running",
+            "databody_confirm_title", "databody_confirm_notice", "databody_backup_apply", "databody_saved",
+            "databody_picker_opening", "databody_save_loading", "databody_save_preparing", "databody_save_writing",
+            "databody_tab_edit", "databody_tab_add", "databody_list_heading", "databody_select_body",
+            "databody_keep_skill", "databody_condition_prefix", "databody_no_requirement", "databody_add_apply"
         };
         for (const auto Key : RequiredKeys)
         {

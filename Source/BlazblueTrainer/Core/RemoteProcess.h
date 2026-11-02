@@ -8,6 +8,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace Trainer
@@ -28,6 +29,21 @@ namespace Trainer
         AttachStatus Status{ AttachStatus::NotRunning };
         std::shared_ptr<RemoteProcess> Process;
         std::string Message;
+        bool RuntimeVerificationRequired{};
+    };
+
+    enum class GameRunState
+    {
+        Stopped,
+        Running,
+        Unknown
+    };
+
+    struct GamePresence
+    {
+        GameRunState State{ GameRunState::Unknown };
+        std::string Error;
+        bool operator==(const GamePresence&) const = default;
     };
 
     struct MemoryRegion
@@ -45,6 +61,10 @@ namespace Trainer
         ~RemoteProcess();
 
         static AttachResult FindCompatibleGameProcess(const Config& Configuration);
+        static GamePresence ObserveGamePresence(const Config& Configuration);
+        static bool CanProbeUpdatedRuntime(
+            const Config& Configuration, std::wstring_view Executable);
+        static bool HasGameMetadataIdentity(const std::filesystem::path& Metadata);
 
         bool IsAlive() const;
         DWORD ProcessId() const;

@@ -69,6 +69,7 @@
             </Border>
 
             <TextBlock x:Name="OperationText" FontSize="12" TextWrapping="Wrap" MinHeight="16" />
+            <Button x:Name="SaveEditorButton" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnOpenDataBodyEditor" />
         </StackPanel>
     </ScrollViewer>
 </Window>

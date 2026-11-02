@@ -144,12 +144,13 @@ namespace Trainer
     struct WindowConfig
     {
         int Width{ 380 };
-        int Height{ 364 };
+        int Height{ 402 };
     };
 
     struct Config
     {
         std::string Module;
+        std::string ExecutableName{ "BlazblueEntropyEffect.exe" };
         std::string UnityVersion;
         std::uint32_t Il2cppVersion{};
         std::uint64_t TypeNameOffset{};

@@ -1,5 +1,6 @@
 game:
   module: 'GameAssembly.dll'
+  executable: 'BlazblueEntropyEffect.exe'
   unity_version: '2022.3.62f2'
   il2cpp_version: 31
   type_name_offset: 0x10
@@ -22,7 +23,7 @@ monitor:
 
 window:
   width: 380
-  height: 364
+  height: 402
 
 hotkeys:
   refresh_add: '1'
@@ -123,7 +124,7 @@ texts:
   ready: {zh-CN: '已连接 · 持续监测', en-US: 'Connected · monitoring'}
   no_targets: {zh-CN: '等待有效游戏数据', en-US: 'Waiting for valid game data'}
   refresh_calibrating: {zh-CN: '正在校验刷新次数', en-US: 'Verifying refreshes'}
-  unsupported_build: {zh-CN: '游戏版本特征不匹配', en-US: 'Unsupported game build'}
+  unsupported_build: {zh-CN: '正在尝试兼容游戏，尚未确认安全目标', en-US: 'Trying compatibility; safe targets not yet verified'}
   access_denied: {zh-CN: '无法读取游戏，请检查运行权限', en-US: 'Game access denied; check permissions'}
   process_error: {zh-CN: '检测游戏时发生错误', en-US: 'Game detection error'}
   title_refresh: {zh-CN: '刷新次数', en-US: 'Refreshes'}
@@ -149,8 +150,97 @@ texts:
   monitor_start_failed: {zh-CN: '监测器启动失败', en-US: 'Monitor failed to start'}
   timer_failed: {zh-CN: '无法创建界面计时器', en-US: 'Cannot create the interface timer'}
   snapshot_failed: {zh-CN: '读取状态失败', en-US: 'Cannot read trainer status'}
+  databody_open: {zh-CN: '离线编辑存档数据体', en-US: 'Offline data-body editor'}
+  databody_title: {zh-CN: '存档数据体', en-US: 'Saved data bodies'}
+  databody_tab_edit: {zh-CN: '查看 / 修改', en-US: 'View / edit'}
+  databody_tab_add: {zh-CN: '新增', en-US: 'Add'}
+  databody_list_heading: {zh-CN: '已有数据体', en-US: 'Existing data bodies'}
+  databody_select_body: {zh-CN: '请选择列表中的数据体', en-US: 'Select a body from the list'}
+  databody_keep_skill: {zh-CN: '保留原传承技', en-US: 'Keep current skill'}
+  databody_condition_prefix: {zh-CN: '局内获取：', en-US: 'Acquire in the run: '}
+  databody_offline_hint: {zh-CN: '关闭游戏并等待云同步完成。确认保存后，先备份再覆盖。', en-US: 'Close the game and wait for cloud sync. Confirmed saves are backed up before replacement.'}
+  databody_game_running: {zh-CN: '游戏运行中，或无法确认游戏已关闭：存档编辑与写入已禁用。', en-US: 'The game is running, or its stopped state is unknown. Save editing and writing are disabled.'}
+  databody_choose_game: {zh-CN: '选择当前游戏安装目录', en-US: 'Select the current game installation directory'}
+  databody_choose_save: {zh-CN: '选择存档槽或浏览指定文件', en-US: 'Select a save slot or browse to a file'}
+  databody_game_directory: {zh-CN: '游戏目录…', en-US: 'Game folder…'}
+  databody_browse: {zh-CN: '浏览…', en-US: 'Browse…'}
+  databody_load: {zh-CN: '载入', en-US: 'Load'}
+  databody_new: {zh-CN: '新增数据体', en-US: 'New data body'}
+  databody_edit: {zh-CN: '修改现有数据体', en-US: 'Edit existing body'}
+  databody_preview_apply: {zh-CN: '核对并保存传承修改…', en-US: 'Review and save inheritance…'}
+  databody_add_apply: {zh-CN: '核对并新增数据体…', en-US: 'Review and add a body…'}
+  databody_inheritance_heading: {zh-CN: '传承策略', en-US: 'Inheritance strategies'}
+  databody_catalog_loading: {zh-CN: '正在只读解析当前游戏角色与策略规则…', en-US: 'Reading current character and strategy rules…'}
+  databody_catalog_ready: {zh-CN: '当前角色 / 策略目录已读取：', en-US: 'Current characters / strategies loaded:'}
+  databody_picker_opening: {zh-CN: '正在打开系统选择窗口…', en-US: 'Opening the system picker…'}
+  databody_save_loading: {zh-CN: '正在后台载入存档…', en-US: 'Loading the save in the background…'}
+  databody_save_preparing: {zh-CN: '正在后台校验并准备修改…', en-US: 'Validating and preparing changes in the background…'}
+  databody_save_writing: {zh-CN: '正在后台备份并保存，请稍候…', en-US: 'Backing up and saving in the background; please wait…'}
+  databody_none: {zh-CN: '不选择', en-US: 'None'}
+  databody_loaded: {zh-CN: '存档已载入，尚未修改文件。', en-US: 'Save loaded; no file changes have been made.'}
+  databody_capacity: {zh-CN: '仓库数量 / 当前已解锁容量：', en-US: 'Stored bodies / currently unlocked capacity:'}
+  databody_purple: {zh-CN: '紫色 · 600 分', en-US: 'Purple · 600 score'}
+  databody_gold: {zh-CN: '金色 · 700 分', en-US: 'Gold · 700 score'}
+  databody_score: {zh-CN: '评分', en-US: 'Score'}
+  databody_no_requirement: {zh-CN: '没有激活条件', en-US: 'No activation conditions'}
+  databody_skill: {zh-CN: '传承技', en-US: 'Inheritance skill'}
+  databody_confirm_title: {zh-CN: '确认备份并修改存档？', en-US: 'Back up and modify this save?'}
+  databody_confirm_notice: {zh-CN: '仅修改下列数据体，其他存档内容保持不变。将先在存档旁的 BlazblueTrainerBackups 文件夹创建并校验完整备份；备份失败、存档外部变化或游戏启动都会中止覆盖。', en-US: 'Only the selected data body is changed. A verified full backup is created in BlazblueTrainerBackups next to the save before replacement. Backup failure, external save changes, or game startup aborts the write.'}
+  databody_backup_apply: {zh-CN: '先备份，再保存', en-US: 'Back up, then save'}
+  databody_cancel: {zh-CN: '取消', en-US: 'Cancel'}
+  databody_saved: {zh-CN: '数据体已保存并回读校验。原存档备份：', en-US: 'Data body saved and verified. Original-save backup:'}
 
 diagnostics:
+  offline_select_body: {zh-CN: '请先选择已有数据体，再修改传承。', en-US: 'Select a saved data body before editing inheritance.'}
+  offline_select_skill: {zh-CN: '请选择该数据体角色自己的传承技。', en-US: "Select an inheritance skill belonging to this data body's character."}
+  offline_skill_invalid: {zh-CN: '存档中的传承技选择无效，未修改。', en-US: 'Invalid saved inheritance skill selection.'}
+  offline_inheritance_count: {zh-CN: '最多选择两项传承策略。', en-US: 'Select at most two inheritance strategies.'}
+  offline_activation_unknown: {zh-CN: '未找到该继承激活条件对应的局内策略。', en-US: 'An inheritance activation condition has no known in-run strategy.'}
+  offline_cancelled: {zh-CN: '离线操作已取消。', en-US: 'The offline operation was cancelled.'}
+  offline_state_pending: {zh-CN: '尚未确认游戏已关闭，存档编辑仍被禁用。', en-US: 'Cannot confirm that the game is stopped; save editing remains blocked.'}
+  offline_plan_stale: {zh-CN: '确认方案已过期，请重新核对当前存档。', en-US: 'The save plan is stale; review the current save again.'}
+  offline_saved_invalid: {zh-CN: '存档中的数据体属性或评分无效，未修改。', en-US: 'Invalid saved data-body attributes or score.'}
+  offline_backup_link: {zh-CN: '备份目录不能是链接或重解析路径，未修改存档。', en-US: 'The save-backup directory must be a normal local directory, not a link.'}
+  offline_unknown_inherited: {zh-CN: '原有继承策略不在当前目录中，记录保持不变。', en-US: 'A saved inheritance strategy is absent from the current catalog; the record was not changed.'}
+  offline_unknown_owned: {zh-CN: '原有自身策略不在当前目录中，记录保持不变。', en-US: 'A saved owned strategy is absent from the current catalog; the record was not changed.'}
+  offline_search_limit: {zh-CN: '策略前置计算已达到安全搜索上限，请减少或调整目标。', en-US: 'Strategy completion exceeded its bounded search; reduce or adjust the requested targets.'}
+  updated_runtime: {zh-CN: '已发现更新后的游戏；正在核验活动模型，确认前不会写入。', en-US: 'Updated game detected; validating authoritative runtime models before enabling writes.'}
+  audio_failed: {zh-CN: '无法播放快捷键提示音：', en-US: 'Cannot play shortcut feedback: '}
+  offline_running: {zh-CN: '请完全退出游戏后再编辑或写入存档。', en-US: 'Fully exit the game before editing or writing a save.'}
+  offline_hp_mp: {zh-CN: 'HP 和 MP 必须是有符号定点数范围内的正整数。', en-US: 'HP and MP must be positive integers within the signed fixed-point range.'}
+  offline_game_directory: {zh-CN: '请先选择当前游戏安装目录。', en-US: "Select the current game's installation directory first."}
+  offline_saved: {zh-CN: '保存修改尚未确认。', en-US: 'Save modification was not confirmed.'}
+  offline_range: {zh-CN: 'HP、MP 或数据体评分超过安全范围。', en-US: 'HP, MP or data-body score is outside the safe range.'}
+  offline_new_requirements: {zh-CN: '新增数据体须选择紫色/金色及两项继承策略。', en-US: 'A new data body requires purple/gold quality and two inheritance strategies.'}
+  offline_select_actor: {zh-CN: '请选择当前游戏目录中的角色。', en-US: 'Select a character from the current game catalog.'}
+  offline_select_strategy: {zh-CN: '请选择当前游戏目录中的策略。', en-US: 'Select a strategy from the current game catalog.'}
+  offline_quality: {zh-CN: '所选策略品质不在当前游戏配置中。', en-US: 'The selected strategy quality is not valid in the current game.'}
+  offline_inheritance: {zh-CN: '请选择两项不同的继承策略。', en-US: 'Select two different inheritance strategies.'}
+  offline_owned_duplicate: {zh-CN: '自身策略不能重复。', en-US: 'Owned strategies must not be duplicated.'}
+  offline_owned_quality: {zh-CN: '继承策略品质须与自身策略一致。', en-US: 'An inheritance strategy must match its owned quality.'}
+  offline_conflict: {zh-CN: '基础策略的动作位置或派系冲突，请移除冲突目标。', en-US: 'The selected base strategies conflict in their action slot or faction.'}
+  offline_prerequisite: {zh-CN: '当前策略搭配无法满足普通获取前置，请调整目标或基础策略。', en-US: 'The selected strategies cannot satisfy their normal acquisition prerequisites.'}
+  offline_activation: {zh-CN: '已补齐的自身策略仍缺少激活前置，未写入。', en-US: 'A completed owned strategy still lacks its activation prerequisites.'}
+  offline_teacher: {zh-CN: '继承角色须互不相同、不同于本角色，且使用自己的传承技。', en-US: 'Inherited characters must be distinct and use their own inheritance skills.'}
+  offline_teacher_count: {zh-CN: '最多选择两位继承角色。', en-US: 'Select at most two inherited characters.'}
+  offline_actor_locked: {zh-CN: '不能直接更换现有数据体角色。', en-US: "An existing data body's character cannot be replaced."}
+  offline_full: {zh-CN: '当前已解锁的数据体仓库已满，请先在游戏中清理。', en-US: 'The currently unlocked data-body warehouse is full.'}
+  offline_uid: {zh-CN: '数据体编号重复或记录不一致，未修改。', en-US: 'Data-body identifiers are duplicated or inconsistent.'}
+  offline_stale: {zh-CN: '存档已被外部修改，请重新载入后再操作。', en-US: 'The save changed externally; reload it before modifying.'}
+  offline_changed_loading: {zh-CN: '载入期间存档已发生变化。', en-US: 'The save changed while it was being loaded.'}
+  offline_no_change: {zh-CN: '没有可保存的修改。', en-US: 'There are no save changes to apply.'}
+  offline_backup_failed: {zh-CN: '备份校验失败，原存档未修改。', en-US: 'Backup verification failed; the original save was not modified.'}
+  offline_temporary_failed: {zh-CN: '临时文件校验失败，原存档未修改。', en-US: 'Temporary-save verification failed; the original save was not modified.'}
+  offline_replace_failed: {zh-CN: '无法原子覆盖存档，完整备份已保留', en-US: 'Cannot atomically replace the save; its backup has been kept'}
+  offline_readback_failed: {zh-CN: '写入后校验失败，请先恢复保留的备份。', en-US: 'Save readback failed; restore the preserved backup before continuing.'}
+  offline_model_missing: {zh-CN: '存档缺少新版数据体模型，请先在当前游戏中载入并保存。', en-US: 'The save lacks the current data-body model; load and save it in the current game first.'}
+  offline_auto_remove: {zh-CN: '自动前置会在对应目标移除后一起删除。', en-US: 'An automatic prerequisite is removed when its requested target is removed.'}
+  offline_invalid_format: {zh-CN: '该文件不是支持的 LZ4 游戏存档。', en-US: 'This file is not a supported LZ4 game save.'}
+  offline_not_autosave: {zh-CN: '该文件不是游戏 AutoSave 存档。', en-US: 'The file is not a game AutoSave document.'}
+  offline_source_table: {zh-CN: '未找到当前游戏所需数据表。', en-US: 'A required current-game catalog table was not found.'}
+  offline_save_access: {zh-CN: '无法访问存档文件', en-US: 'Cannot access the save file'}
+  offline_backup_write: {zh-CN: '无法写入备份或临时存档', en-US: 'Cannot write the backup or temporary save'}
+  offline_backup_flush: {zh-CN: '无法可靠刷新备份或临时存档', en-US: 'Cannot flush the backup or temporary save'}
   not_connected: {zh-CN: '尚未连接兼容的游戏进程。', en-US: 'A compatible game process is not connected.'}
   negative_amount: {zh-CN: '目标值或增量不能为负数。', en-US: 'A target value or increment cannot be negative.'}
   safe_limit: {zh-CN: '请求的数值超过配置的安全上限。', en-US: 'The requested value exceeds the configured safe limit.'}
