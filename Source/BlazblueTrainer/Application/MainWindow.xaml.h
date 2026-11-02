@@ -26,6 +26,8 @@ namespace winrt::BlazblueTrainer::implementation
         void OnAddExchangeClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnSetApClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnAddApClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+        winrt::fire_and_forget OnGrantAllPotentialsClick(
+            Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnLanguageChanged(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
         void OnOpenDataBodyEditor(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
 
@@ -43,7 +45,7 @@ namespace winrt::BlazblueTrainer::implementation
         void ShowOperationMessage(const std::string& Message);
         void Shutdown();
 
-        TrainerEngine* EngineHandle{};
+        std::shared_ptr<TrainerEngine> EngineHandle;
         std::unique_ptr<Trainer::WindowBehavior> NativeBehavior;
         Microsoft::UI::Dispatching::DispatcherQueueTimer SnapshotTimer{ nullptr };
         std::string LastDetail;
@@ -56,6 +58,7 @@ namespace winrt::BlazblueTrainer::implementation
         std::optional<Trainer::GamePresence> DisplayedPresence;
         Microsoft::UI::Xaml::Window DataBodyEditor{ nullptr };
         bool IsShuttingDown{};
+        bool IsGrantingPotentials{};
     };
 }
 

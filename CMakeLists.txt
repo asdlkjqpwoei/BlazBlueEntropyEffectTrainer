@@ -57,6 +57,7 @@ set(NativeIntermediateDirectory "${CMAKE_CURRENT_BINARY_DIR}/Intermediate")
 file(MAKE_DIRECTORY "${NativeProjectDirectory}")
 
 set(TrainerSources
+    "${TrainerDirectory}/Core/AllPotentials.cpp"
     "${TrainerDirectory}/Core/AudioFeedback.cpp"
     "${TrainerDirectory}/Core/Config.cpp"
     "${TrainerDirectory}/Core/DataBodyCatalog.cpp"
@@ -77,6 +78,27 @@ set(TrainerSources
 )
 file(GLOB TrainerHeaders CONFIGURE_DEPENDS
     "${TrainerDirectory}/Core/*.h" "${TrainerDirectory}/Public/*.h")
+set(PotentialScript "${TrainerDirectory}/Scripts/GrantAllPotentials.js")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${PotentialScript}")
+file(READ "${PotentialScript}" PotentialScriptSource)
+configure_file(CMake/PotentialScript.h.in
+    "${NativeProjectDirectory}/PotentialScript.generated.h" @ONLY)
+add_library(BlazbluePotentialBridge SHARED
+    "${TrainerDirectory}/Bridge/PotentialBridge.cpp"
+    "${TrainerDirectory}/Core/PotentialProtocol.h"
+    "${TrainerDirectory}/Core/Text.h"
+    "${NativeProjectDirectory}/PotentialScript.generated.h")
+target_include_directories(BlazbluePotentialBridge PRIVATE
+    "${TrainerDirectory}/Core" "${NativeProjectDirectory}")
+target_compile_definitions(BlazbluePotentialBridge PRIVATE
+    WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE)
+target_compile_options(BlazbluePotentialBridge PRIVATE /W4 /permissive- /EHsc /utf-8)
+target_link_libraries(BlazbluePotentialBridge PRIVATE user32)
+set_target_properties(BlazbluePotentialBridge PROPERTIES
+    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+    RUNTIME_OUTPUT_DIRECTORY "${BinaryDirectory}/$<CONFIG>"
+    PDB_OUTPUT_DIRECTORY "${BinaryDirectory}/$<CONFIG>"
+    FOLDER "Product")
 function(EscapeXml Input Output)
     string(REPLACE "&" "&amp;" Value "${Input}")
     string(REPLACE "<" "&lt;" Value "${Value}")
@@ -134,6 +156,7 @@ endif()
 include_external_msproject(BlazblueTrainer
     "${NativeProjectDirectory}/BlazblueTrainer.vcxproj"
     GUID "73FB3A47-66BD-4FE9-AB93-6B1AC9ED82E8" PLATFORM x64)
+add_dependencies(BlazblueTrainer BlazbluePotentialBridge)
 set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT BlazblueTrainer)
 
 if(BUILD_TESTING)
@@ -141,7 +164,8 @@ if(BUILD_TESTING)
     add_executable(BlazblueTests ${TestSources} ${TrainerSources} ${TrainerHeaders})
     target_include_directories(BlazblueTests PRIVATE
         "${TrainerDirectory}/Core" "${TrainerDirectory}/Public" "${TestDirectory}")
-    target_link_libraries(BlazblueTests PRIVATE yaml-cpp::yaml-cpp lz4::lz4 comctl32 winmm shell32 ole32 advapi32)
+    target_link_libraries(BlazblueTests PRIVATE yaml-cpp::yaml-cpp lz4::lz4 comctl32 winmm shell32 ole32 advapi32 bcrypt)
+    add_dependencies(BlazblueTests BlazbluePotentialBridge)
     target_compile_definitions(BlazblueTests PRIVATE
         WIN32_LEAN_AND_MEAN NOMINMAX UNICODE _UNICODE)
     target_compile_options(BlazblueTests PRIVATE /W4 /permissive- /EHsc /utf-8)
@@ -152,6 +176,13 @@ if(BUILD_TESTING)
     source_group(TREE "${TestDirectory}" PREFIX "Tests" FILES ${TestSources})
     source_group(TREE "${TrainerDirectory}" PREFIX "Product" FILES ${TrainerSources} ${TrainerHeaders})
     add_test(NAME BlazblueTests COMMAND BlazblueTests)
+    find_program(NodeExecutable NAMES node)
+    if(NodeExecutable)
+        add_test(NAME PotentialScriptTests COMMAND "${NodeExecutable}"
+            "${TestDirectory}/PotentialScriptTests.js" "${PotentialScript}")
+    else()
+        message(WARNING "Node.js was not found; the potential-script regression tests are not registered.")
+    endif()
     get_target_property(YamlType yaml-cpp::yaml-cpp TYPE)
     if(YamlType STREQUAL "SHARED_LIBRARY")
         add_custom_command(TARGET BlazblueTests POST_BUILD

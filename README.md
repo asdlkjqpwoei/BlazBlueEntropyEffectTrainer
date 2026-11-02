@@ -39,7 +39,7 @@ cmake --build --preset vs2026-x64 --config Release
 ctest --test-dir out\build\vs2026-x64 -C Release --output-on-failure
 ```
 
-覆盖资源运算、活动对象所有权、失效地址、AP 保存标记、中英切换、UTF-8 安全截断、快捷键音效、更新识别、窗口/DPI，以及合成存档的添加、修改、确认取消、过期文件、备份失败和游戏启动时阻断。
+覆盖资源运算、活动对象所有权、失效地址、AP 保存标记、潜能结果校验与主线程桥接、中英切换、UTF-8 安全截断、快捷键音效、更新识别、窗口/DPI，以及合成存档的添加、修改、确认取消、过期文件、备份失败和游戏启动时阻断。安装 Node.js 18 或以上版本时，CTest 还会自动运行潜能授予、重复操作、育成/探索同步和异常阻断的脚本回归测试。
 
 ```powershell
 .\Binaries\Release\BlazblueTests.exe --window-integration

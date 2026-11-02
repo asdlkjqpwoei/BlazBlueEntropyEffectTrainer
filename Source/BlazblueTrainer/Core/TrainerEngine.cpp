@@ -2,6 +2,7 @@
 #include "Text.h"
 
 #include "Operations.h"
+#include "AllPotentials.h"
 
 #include <algorithm>
 #include <chrono>
@@ -2509,6 +2510,25 @@ namespace Trainer
                 Text("ready"));
         }
         return CandidatesLost;
+    }
+
+    bool Engine::GrantAllPotentials(TrainerPotentialResult& Result, std::string& Error)
+    {
+        Result = {};
+        Error.clear();
+        std::shared_ptr<RemoteProcess> Process;
+        std::stop_token StopToken;
+        {
+            std::lock_guard Lock(StateMutex);
+            Process = ConnectedProcess;
+            if (!IsRunning.load() || !Process || !CachedSnapshot.BuildVerified || !Process->IsAlive())
+            {
+                Error = "A compatible game process is not connected.";
+                return false;
+            }
+            StopToken = MonitorThread.get_stop_token();
+        }
+        return RequestAllPotentials(Process->ProcessId(), Result, Error, StopToken);
     }
 
     bool Engine::Apply(

@@ -23,7 +23,7 @@ monitor:
 
 window:
   width: 380
-  height: 402
+  height: 442
 
 hotkeys:
   refresh_add: '1'
@@ -130,6 +130,10 @@ texts:
   title_refresh: {zh-CN: '刷新次数', en-US: 'Refreshes'}
   title_exchange: {zh-CN: '兑换点', en-US: 'Exchange points'}
   title_ap: {zh-CN: 'AP 点', en-US: 'AP points'}
+  potentials_grant: {zh-CN: '获得当前角色全部潜能', en-US: 'Grant all character potentials'}
+  potentials_hint: {zh-CN: '单人育成或探索局内使用；只补齐当前角色的有效潜能，不重复叠加，不修改游戏文件。', en-US: 'Use during a single-player breed or exploration run. Adds only missing valid character potentials, without stacking duplicates or modifying game files.'}
+  potentials_busy: {zh-CN: '正在游戏主线程授予潜能并同步战斗状态…', en-US: 'Granting potentials and synchronizing combat on the game thread…'}
+  potentials_already_owned: {zh-CN: '当前角色已拥有全部有效潜能，无需重复添加。', en-US: 'This character already owns every valid potential; nothing was added.'}
   ap_unavailable: {zh-CN: '当前配置未提供已验证的 AP 活动模型；不会修改 AP。', en-US: 'No verified AP model is configured; AP will not be modified.'}
   set: {zh-CN: '设置', en-US: 'Set'}
   add: {zh-CN: '增加', en-US: 'Add'}
@@ -191,6 +195,33 @@ texts:
   databody_saved: {zh-CN: '数据体已保存并回读校验。原存档备份：', en-US: 'Data body saved and verified. Original-save backup:'}
 
 diagnostics:
+  potential_added: {zh-CN: '已新增潜能：', en-US: 'Potentials added: '}
+  potential_total: {zh-CN: '；该角色潜能总数：', en-US: '; total for this character: '}
+  potential_arguments: {zh-CN: '必须提供修改器引擎和潜能结果输出对象。', en-US: 'A trainer engine and potential-result destination are required.'}
+  potential_in_progress: {zh-CN: '已有潜能授予操作正在进行。', en-US: 'A potential grant is already in progress.'}
+  potential_single_player: {zh-CN: '全部潜能功能仅支持单人局内使用。', en-US: 'Only single-player runs support granting all potentials.'}
+  potential_enter_run: {zh-CN: '请先进入单人育成或探索局内，再授予潜能。', en-US: 'Enter a single-player run before granting potentials.'}
+  potential_alive: {zh-CN: '请等待当前角色存活并完成加载。', en-US: 'Wait until the current character is alive and ready.'}
+  potential_actor_changed: {zh-CN: '当前角色与局内权威数据不一致，未授予潜能。', en-US: 'The active character does not match the authoritative run data.'}
+  potential_api: {zh-CN: '当前游戏未提供兼容的潜能接口。', en-US: 'The current game does not expose a compatible potential API.'}
+  potential_empty: {zh-CN: '未找到当前角色的有效潜能配置。', en-US: 'No valid potentials were found for the current character.'}
+  potential_not_retained: {zh-CN: '游戏未保留所有请求的潜能。', en-US: 'The game did not retain every requested potential.'}
+  potential_partial: {zh-CN: '授予过程中发生错误，部分修改可能已生效：', en-US: 'Potential granting failed after changes started; some changes may already have applied: '}
+  potential_invalid_result: {zh-CN: '游戏返回的潜能结果无效。', en-US: 'The game returned an invalid potential result.'}
+  potential_window: {zh-CN: '无法确认唯一的活动游戏窗口。', en-US: 'A unique active game window could not be verified.'}
+  potential_nonce: {zh-CN: '无法创建唯一的潜能请求。', en-US: 'Cannot create a unique potential request.'}
+  potential_cancelled: {zh-CN: '潜能请求已在执行前取消。', en-US: 'The potential request was cancelled before execution.'}
+  potential_timeout: {zh-CN: '潜能请求执行超时，修改可能已经生效，请勿立即重复操作。', en-US: 'The potential request timed out during execution; changes may already have applied. Do not retry immediately.'}
+  potential_not_executed: {zh-CN: '游戏未执行潜能请求。', en-US: 'The game did not execute the potential request.'}
+  potential_runtime: {zh-CN: '游戏脚本运行时尚不可用。', en-US: 'The game scripting runtime is not available.'}
+  potential_exports: {zh-CN: '缺少必要的游戏脚本接口：', en-US: 'A required game scripting export is missing: '}
+  potential_managed_api: {zh-CN: '游戏托管脚本环境不兼容。', en-US: 'The managed game scripting environment is incompatible.'}
+  potential_managed_ready: {zh-CN: '游戏托管脚本环境尚未就绪。', en-US: 'The managed game scripting environment is not ready.'}
+  potential_managed_call: {zh-CN: '游戏托管脚本调用失败：', en-US: 'A managed game scripting call failed: '}
+  potential_thread: {zh-CN: '游戏窗口线程不是已注册的 Unity 线程，操作已阻止。', en-US: 'The game window thread is not an attached Unity thread.'}
+  potential_environment: {zh-CN: '无法确认唯一的游戏脚本环境。', en-US: 'A unique game scripting environment could not be verified.'}
+  potential_script: {zh-CN: '潜能脚本执行失败：', en-US: 'The potential script failed: '}
+  potential_bridge: {zh-CN: '潜能调用桥接：', en-US: 'Potential bridge: '}
   offline_select_body: {zh-CN: '请先选择已有数据体，再修改传承。', en-US: 'Select a saved data body before editing inheritance.'}
   offline_select_skill: {zh-CN: '请选择该数据体角色自己的传承技。', en-US: "Select an inheritance skill belonging to this data body's character."}
   offline_skill_invalid: {zh-CN: '存档中的传承技选择无效，未修改。', en-US: 'Invalid saved inheritance skill selection.'}

@@ -1,0 +1,5 @@
+#pragma once
+
+inline constexpr char GrantAllPotentialsScript[] = R"trainerjs(
+(@PotentialScriptSource@)()
+)trainerjs";

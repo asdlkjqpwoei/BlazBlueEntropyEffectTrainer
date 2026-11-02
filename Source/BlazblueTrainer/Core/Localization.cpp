@@ -57,6 +57,7 @@ namespace Trainer
             "title", "subtitle", "waiting", "checking", "scanning", "ready", "no_targets",
             "refresh_calibrating", "unsupported_build", "access_denied", "process_error",
             "title_refresh", "title_exchange", "title_ap", "ap_unavailable", "set", "add",
+            "potentials_grant", "potentials_hint", "potentials_busy", "potentials_already_owned",
             "refresh_hint", "process_connected", "process_waiting", "value_detected",
             "value_blocked", "value_not_detected", "value_safety_blocked", "input_error",
             "operation_succeeded", "operation_no_address", "operation_safety_error",

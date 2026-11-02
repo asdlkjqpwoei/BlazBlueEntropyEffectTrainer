@@ -68,6 +68,8 @@
                 </StackPanel>
             </Border>
 
+            <Button x:Name="AllPotentialsButton" Content="获得当前角色全部潜能"
+                    HorizontalAlignment="Stretch" IsEnabled="False" Click="OnGrantAllPotentialsClick" />
             <TextBlock x:Name="OperationText" FontSize="12" TextWrapping="Wrap" MinHeight="16" />
             <Button x:Name="SaveEditorButton" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnOpenDataBodyEditor" />
         </StackPanel>

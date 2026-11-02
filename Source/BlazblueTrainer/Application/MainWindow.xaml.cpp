@@ -55,10 +55,10 @@ namespace winrt::BlazblueTrainer::implementation
             Preferred = Configuration.Window;
             Bindings = Configuration.Hotkeys;
             std::array<char, 1024> Error{};
-            EngineHandle = TrainerCreate(ConfigPath.c_str(), Error.data(), Error.size());
+            EngineHandle.reset(TrainerCreate(ConfigPath.c_str(), Error.data(), Error.size()), TrainerDestroy);
             if (!EngineHandle)
                 throw std::runtime_error(Error.data());
-            if (!TrainerSetLanguage(EngineHandle, InterfaceLanguage, Error.data(), Error.size()))
+            if (!TrainerSetLanguage(EngineHandle.get(), InterfaceLanguage, Error.data(), Error.size()))
                 throw std::runtime_error(Error.data());
             UpdateLocalizedInterface();
             const std::array Labels{RefreshShortcutText(), ExchangeShortcutText(), ApShortcutText()};
@@ -73,8 +73,7 @@ namespace winrt::BlazblueTrainer::implementation
         catch (const std::exception& Error)
         {
             StartupError = Error.what();
-            TrainerDestroy(EngineHandle);
-            EngineHandle = nullptr;
+            EngineHandle.reset();
         }
         try
         {
@@ -113,7 +112,7 @@ namespace winrt::BlazblueTrainer::implementation
             return;
         }
         std::array<char, 1024> Error{};
-        if (!TrainerStart(EngineHandle, Error.data(), Error.size()))
+        if (!TrainerStart(EngineHandle.get(), Error.data(), Error.size()))
         {
             StatusText().Text(Utf8ToHString(ReadText("monitor_start_failed")));
             ShowOperationMessage(Error.data());
@@ -156,6 +155,8 @@ namespace winrt::BlazblueTrainer::implementation
         RefreshTitleText().Text(Utf8ToHString(ReadText("title_refresh")));
         ExchangeTitleText().Text(Utf8ToHString(ReadText("title_exchange")));
         ApTitleText().Text(Utf8ToHString(ReadText("title_ap")));
+        AllPotentialsButton().Content(box_value(Utf8ToHString(ReadText("potentials_grant"))));
+        SetTooltip(AllPotentialsButton(), Utf8ToHString(ReadText("potentials_hint")));
         SaveEditorButton().Content(box_value(Utf8ToHString(ReadText("databody_open"))));
         SetTooltip(RefreshTitleText(), Utf8ToHString(ReadText("refresh_hint")));
         for (const auto& Button : {RefreshSetButton(), ExchangeSetButton(), ApSetButton()})
@@ -188,7 +189,7 @@ namespace winrt::BlazblueTrainer::implementation
         const auto Language = InterfaceLanguage == TrainerLanguageEnglish
             ? TrainerLanguageChinese : TrainerLanguageEnglish;
         std::array<char, 512> Error{};
-        if (!TrainerSetLanguage(EngineHandle, Language, Error.data(), Error.size()))
+        if (!TrainerSetLanguage(EngineHandle.get(), Language, Error.data(), Error.size()))
         {
             ShowOperationMessage(Error.data());
             return;
@@ -230,7 +231,7 @@ namespace winrt::BlazblueTrainer::implementation
         std::array<char, 1024> Error{};
         std::int32_t Writes{};
         const bool Applied = TrainerApply(
-            EngineHandle, Feature, Operation, *Amount, &Writes, Error.data(), Error.size()) != 0;
+            EngineHandle.get(), Feature, Operation, *Amount, &Writes, Error.data(), Error.size()) != 0;
         ShowOperationMessage(Error.data());
         UpdateSnapshot();
         return Applied;
@@ -249,12 +250,12 @@ namespace winrt::BlazblueTrainer::implementation
 
     void MainWindow::SetDefaultInputs()
     {
-        RefreshSetInput().Text(to_hstring(TrainerGetDefault(EngineHandle, TrainerFeatureRefresh, TrainerOperationSet)));
-        RefreshAddInput().Text(to_hstring(TrainerGetDefault(EngineHandle, TrainerFeatureRefresh, TrainerOperationAdd)));
-        ExchangeSetInput().Text(to_hstring(TrainerGetDefault(EngineHandle, TrainerFeatureExchange, TrainerOperationSet)));
-        ExchangeAddInput().Text(to_hstring(TrainerGetDefault(EngineHandle, TrainerFeatureExchange, TrainerOperationAdd)));
-        ApSetInput().Text(to_hstring(TrainerGetDefault(EngineHandle, TrainerFeatureAp, TrainerOperationSet)));
-        ApAddInput().Text(to_hstring(TrainerGetDefault(EngineHandle, TrainerFeatureAp, TrainerOperationAdd)));
+        RefreshSetInput().Text(to_hstring(TrainerGetDefault(EngineHandle.get(), TrainerFeatureRefresh, TrainerOperationSet)));
+        RefreshAddInput().Text(to_hstring(TrainerGetDefault(EngineHandle.get(), TrainerFeatureRefresh, TrainerOperationAdd)));
+        ExchangeSetInput().Text(to_hstring(TrainerGetDefault(EngineHandle.get(), TrainerFeatureExchange, TrainerOperationSet)));
+        ExchangeAddInput().Text(to_hstring(TrainerGetDefault(EngineHandle.get(), TrainerFeatureExchange, TrainerOperationAdd)));
+        ApSetInput().Text(to_hstring(TrainerGetDefault(EngineHandle.get(), TrainerFeatureAp, TrainerOperationSet)));
+        ApAddInput().Text(to_hstring(TrainerGetDefault(EngineHandle.get(), TrainerFeatureAp, TrainerOperationAdd)));
     }
 
     void MainWindow::SetValueLabels(const TrainerSnapshot& Snapshot)
@@ -286,6 +287,8 @@ namespace winrt::BlazblueTrainer::implementation
         ExchangeAddButton().IsEnabled(Exchange);
         ApSetButton().IsEnabled(Ap);
         ApAddButton().IsEnabled(Ap);
+        AllPotentialsButton().IsEnabled(Verified && Snapshot.ProcessDetected != 0 &&
+            Snapshot.ProcessId != 0 && !IsGrantingPotentials);
         if (NativeBehavior)
             NativeBehavior->SetGameState(Snapshot.ProcessId, {Refresh, Exchange, Ap});
     }
@@ -296,7 +299,7 @@ namespace winrt::BlazblueTrainer::implementation
             return;
         TrainerSnapshot Snapshot{};
         std::array<char, 512> Error{};
-        if (!TrainerGetSnapshot(EngineHandle, &Snapshot, Error.data(), Error.size()))
+        if (!TrainerGetSnapshot(EngineHandle.get(), &Snapshot, Error.data(), Error.size()))
         {
             SetWriteEnabled({});
             StatusText().Text(Utf8ToHString(ReadText("snapshot_failed")));
@@ -341,9 +344,8 @@ namespace winrt::BlazblueTrainer::implementation
             SnapshotTimer.Stop();
             SnapshotTimer = nullptr;
         }
-        TrainerStop(EngineHandle);
-        TrainerDestroy(EngineHandle);
-        EngineHandle = nullptr;
+        TrainerStop(EngineHandle.get());
+        EngineHandle.reset();
     }
 
     void MainWindow::OnSetRefreshClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&)
@@ -358,6 +360,35 @@ namespace winrt::BlazblueTrainer::implementation
     { ApplyFeature(TrainerFeatureAp, TrainerOperationSet, ApSetInput()); }
     void MainWindow::OnAddApClick(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&)
     { ApplyAddFeature(TrainerFeatureAp); }
+
+    fire_and_forget MainWindow::OnGrantAllPotentialsClick(
+        Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&)
+    {
+        const auto Lifetime = get_strong();
+        if (IsShuttingDown || IsGrantingPotentials || !EngineHandle)
+            co_return;
+        const auto Queue = Microsoft::UI::Dispatching::DispatcherQueue::GetForCurrentThread();
+        const auto Engine = EngineHandle;
+        IsGrantingPotentials = true;
+        ShowOperationMessage(ReadText("potentials_busy"));
+        UpdateSnapshot();
+        TrainerPotentialResult Result{};
+        std::array<char, 4096> Error{};
+        co_await resume_background();
+        const bool Applied = TrainerGrantAllPotentials(
+            Engine.get(), &Result, Error.data(), Error.size()) != 0;
+        if (!(co_await ResumeOnUi{Queue}) || IsShuttingDown)
+            co_return;
+        IsGrantingPotentials = false;
+        if (!Applied)
+            ShowOperationMessage(Error.data());
+        else if (Result.Added == 0)
+            ShowOperationMessage(ReadText("potentials_already_owned"));
+        else
+            ShowOperationMessage("Potentials added: " + std::to_string(Result.Added) +
+                "; total for this character: " + std::to_string(Result.Total));
+        UpdateSnapshot();
+    }
 
     void MainWindow::OnOpenDataBodyEditor(
         Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&)

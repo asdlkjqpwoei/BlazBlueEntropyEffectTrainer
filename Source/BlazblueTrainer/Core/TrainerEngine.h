@@ -100,6 +100,7 @@ namespace Trainer
             std::int64_t Value,
             std::int32_t& Writes,
             std::string& Error);
+        bool GrantAllPotentials(TrainerPotentialResult& Result, std::string& Error);
         std::string Text(const std::string& Key) const;
         std::string Translate(const std::string& Message) const;
         void SetLanguage(TrainerLanguage Language);

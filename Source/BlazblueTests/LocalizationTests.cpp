@@ -30,6 +30,16 @@ int RunLocalizationTests()
     Require(Texts.Text("databody_picker_opening", TrainerLanguageEnglish) !=
         Texts.Text("databody_picker_opening", TrainerLanguageChinese),
         "The async file picker status must support both interface languages.");
+    Require(Texts.Text("potentials_grant", TrainerLanguageEnglish) !=
+        Texts.Text("potentials_grant", TrainerLanguageChinese) &&
+        Texts.Text("potentials_busy", TrainerLanguageEnglish) !=
+        Texts.Text("potentials_busy", TrainerLanguageChinese),
+        "The one-click potential action and its busy state must support both interface languages.");
+    const std::string PotentialCounts = "Potentials added: 5; total for this character: 12";
+    const auto ChineseCounts = Texts.Translate(PotentialCounts, TrainerLanguageChinese);
+    Require(ChineseCounts != PotentialCounts &&
+        Texts.Translate(ChineseCounts, TrainerLanguageEnglish) == PotentialCounts,
+        "Dynamic potential counts must switch languages without losing their values.");
     const auto ChineseError = Texts.Translate("A compatible game process is not connected.", TrainerLanguageChinese);
     Require(ChineseError != "A compatible game process is not connected." &&
         Texts.Translate(ChineseError, TrainerLanguageEnglish) ==
@@ -76,6 +86,14 @@ int RunLocalizationTests()
     try {Trainer::Localization::FromYaml(Node);}
     catch (const std::runtime_error&) {MissingRejected = true;}
     Require(MissingRejected, "The async file picker status must not be silently omitted.");
+    Input.clear();
+    Input.seekg(0);
+    Node = YAML::Load(Input);
+    Node["texts"].remove("potentials_grant");
+    MissingRejected = false;
+    try {Trainer::Localization::FromYaml(Node);}
+    catch (const std::runtime_error&) {MissingRejected = true;}
+    Require(MissingRejected, "The one-click potential action must not silently omit its translations.");
     Input.clear();
     Input.seekg(0);
     Node = YAML::Load(Input);

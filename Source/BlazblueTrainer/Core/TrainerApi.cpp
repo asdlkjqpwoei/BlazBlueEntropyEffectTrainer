@@ -178,6 +178,32 @@ extern "C"
         }
     }
 
+    TRAINER_API std::int32_t __cdecl TrainerGrantAllPotentials(
+        TrainerEngine* Engine, TrainerPotentialResult* Result,
+        char* ErrorBuffer, std::size_t ErrorBufferSize)
+    {
+        if (Result)
+            *Result = {};
+        if (!Engine || !Result)
+        {
+            const std::string Message = "A trainer engine and potential-result destination are required.";
+            CopyError(ErrorBuffer, ErrorBufferSize, Engine ? Engine->Implementation.Translate(Message) : Message);
+            return 0;
+        }
+        try
+        {
+            std::string Error;
+            const bool Applied = Engine->Implementation.GrantAllPotentials(*Result, Error);
+            CopyError(ErrorBuffer, ErrorBufferSize, Engine->Implementation.Translate(Error));
+            return Applied ? 1 : 0;
+        }
+        catch (const std::exception& Exception)
+        {
+            CopyError(ErrorBuffer, ErrorBufferSize, Engine->Implementation.Translate(Exception.what()));
+            return 0;
+        }
+    }
+
     TRAINER_API std::int32_t __cdecl TrainerGetText(
         TrainerEngine* Engine,
         const char* Key,

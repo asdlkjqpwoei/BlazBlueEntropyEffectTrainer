@@ -4,6 +4,7 @@
 
 int RunCoreTests();
 int RunPuertsRuntimeTests();
+int RunPotentialTests();
 int RunHotkeyTests();
 int RunWindowTests();
 int RunWindowIntegration();
@@ -49,13 +50,14 @@ int main(int ArgumentCount, char** Arguments)
         }
         const int CoreResult = RunCoreTests();
         const int RuntimeResult = RunPuertsRuntimeTests();
+        const int PotentialResult = RunPotentialTests();
         const int HotkeyResult = RunHotkeyTests();
         const int WindowResult = RunWindowTests();
         const int LanguageResult = RunLocalizationTests();
         const int SaveResult = RunSaveTests();
         const int FeedbackResult = RunFeedbackTests();
         const int ResponsivenessResult = RunResponsivenessTests();
-        if (CoreResult || RuntimeResult || HotkeyResult || WindowResult || LanguageResult ||
+        if (CoreResult || RuntimeResult || PotentialResult || HotkeyResult || WindowResult || LanguageResult ||
             SaveResult || FeedbackResult || ResponsivenessResult)
             return 1;
         std::cout << "Core, runtime ownership, localization, shortcuts/audio, offline saves, and DPI/window tests passed.\n";

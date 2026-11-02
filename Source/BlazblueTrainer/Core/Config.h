@@ -144,7 +144,7 @@ namespace Trainer
     struct WindowConfig
     {
         int Width{ 380 };
-        int Height{ 402 };
+        int Height{ 442 };
     };
 
     struct Config

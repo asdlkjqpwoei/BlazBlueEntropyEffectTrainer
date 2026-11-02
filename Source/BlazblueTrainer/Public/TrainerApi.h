@@ -67,6 +67,14 @@ struct TrainerSnapshot
     char DetailMessage[512];
 };
 
+struct TrainerPotentialResult
+{
+    std::uint32_t ActorId;
+    std::uint32_t Added;
+    std::uint32_t Total;
+    std::uint32_t ExecutionThreadId;
+};
+
 extern "C"
 {
     TRAINER_API TrainerEngine* __cdecl TrainerCreate(
@@ -99,6 +107,12 @@ extern "C"
         TrainerOperation Operation,
         std::int64_t Value,
         std::int32_t* Writes,
+        char* ErrorBuffer,
+        std::size_t ErrorBufferSize);
+
+    TRAINER_API std::int32_t __cdecl TrainerGrantAllPotentials(
+        TrainerEngine* Engine,
+        TrainerPotentialResult* Result,
         char* ErrorBuffer,
         std::size_t ErrorBufferSize);
 
