@@ -10,4 +10,4 @@
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Microsoft.UI.Xaml.h>
 #include "MainWindow.xaml.h"
-#include "DataBodyWindow.xaml.h"
+#include "DataBodyEditor.xaml.h"

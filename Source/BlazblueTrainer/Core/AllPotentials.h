@@ -10,9 +10,9 @@
 
 namespace Trainer
 {
-    bool ParsePotentialResult(
-        std::string_view Response, TrainerPotentialResult& Result, std::string& Error);
-    bool RequestAllPotentials(
-        DWORD ProcessId, TrainerPotentialResult& Result, std::string& Error,
-        std::stop_token StopToken = {});
+	bool ParsePotentialResult(
+		std::string_view Response, TrainerPotentialResult& Result, std::string& Error);
+	bool RequestAllPotentials(
+		DWORD ProcessId, TrainerPotentialResult& Result, std::string& Error,
+		std::stop_token StopToken = {});
 }

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<!-- Window-hook callbacks must live in a DLL in the game process. Build this
+	   private runtime component with the application, without another project. -->
+	<PropertyGroup>
+		<TrainerBridgeRoot>$(TrainerSourceRoot)\Source\BlazblueTrainer\Bridge</TrainerBridgeRoot>
+		<TrainerBridgeIntDir>$(IntDir)RuntimeBridge\</TrainerBridgeIntDir>
+		<TrainerBridgeOutput>$(OutDir)BlazblueRuntimeBridge.dll</TrainerBridgeOutput>
+		<TrainerBridgeStagedOutput>$(TrainerBridgeIntDir)BlazblueRuntimeBridge.dll</TrainerBridgeStagedOutput>
+		<TrainerBridgeTargetsFile>$(MSBuildThisFileFullPath)</TrainerBridgeTargetsFile>
+		<TrainerScriptHeader>$(ProjectDir)PotentialScript.generated.h</TrainerScriptHeader>
+		<TrainerBridgeRuntime Condition="'$(Configuration)'=='Debug'">MultiThreadedDebugDLL</TrainerBridgeRuntime>
+		<TrainerBridgeRuntime Condition="'$(Configuration)'!='Debug'">MultiThreadedDLL</TrainerBridgeRuntime>
+		<TrainerBridgeOptimization Condition="'$(Configuration)'=='Debug'">Disabled</TrainerBridgeOptimization>
+		<TrainerBridgeOptimization Condition="'$(Configuration)'!='Debug'">MaxSpeed</TrainerBridgeOptimization>
+	</PropertyGroup>
+	<ItemGroup>
+		<TrainerRuntimeSource Include="$(TrainerBridgeRoot)\PotentialBridge.cpp;$(TrainerBridgeRoot)\PerfectBridge.cpp;$(TrainerBridgeRoot)\PerfectHooks.cpp" />
+		<TrainerRuntimeHeader Include="$(TrainerBridgeRoot)\*.h;$(TrainerSourceRoot)\Source\BlazblueTrainer\Core\*.h" />
+		<ClCompile Include="@(TrainerRuntimeSource)">
+			<ExcludedFromBuild>true</ExcludedFromBuild>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<AdditionalIncludeDirectories>$(TrainerSourceRoot)\Source\BlazblueTrainer\Core;$(ProjectDir);$(TrainerMinHookInclude);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+		</ClCompile>
+		<ClInclude Include="$(TrainerBridgeRoot)\PerfectHooks.h" />
+		<None Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Scripts\GrantAllPotentials.js" />
+	</ItemGroup>
+	<Target Name="GenerateTrainerPotentialScript" Inputs="$(TrainerSourceRoot)\Source\BlazblueTrainer\Scripts\GrantAllPotentials.js;$(TrainerSourceRoot)\CMake\PotentialScript.h.in;$(TrainerSourceRoot)\CMake\GeneratePotentialScript.cmake" Outputs="$(TrainerScriptHeader)">
+		<Exec Command="&quot;$(TrainerCMakeCommand)&quot; &quot;-DTrainerSourceRoot=$(TrainerSourceRoot)&quot; &quot;-DTrainerScriptHeader=$(TrainerScriptHeader)&quot; -P &quot;$(TrainerSourceRoot)\CMake\GeneratePotentialScript.cmake&quot;" />
+	</Target>
+	<Target Name="BuildTrainerRuntimeBridge" BeforeTargets="ClCompile" DependsOnTargets="PrepareForBuild;GenerateTrainerPotentialScript" Inputs="@(TrainerRuntimeSource);@(TrainerRuntimeHeader);$(TrainerScriptHeader);$(TrainerMinHookLibrary);$(ProjectDir)Dependencies.$(Configuration).props;$(TrainerBridgeTargetsFile)" Outputs="$(TrainerBridgeOutput);$(OutDir)BlazblueRuntimeBridge.pdb">
+		<MakeDir Directories="$(TrainerBridgeIntDir);$(OutDir)" />
+		<CL Sources="@(TrainerRuntimeSource)" AdditionalIncludeDirectories="$(TrainerSourceRoot)\Source\BlazblueTrainer\Core;$(ProjectDir);$(TrainerMinHookInclude);$(IncludePath)" PreprocessorDefinitions="WIN32_LEAN_AND_MEAN;NOMINMAX;UNICODE;_UNICODE" PrecompiledHeader="NotUsing" LanguageStandard="stdcpp20" ConformanceMode="true" ExceptionHandling="Sync" WarningLevel="Level4" SDLCheck="true" AdditionalOptions="/utf-8" SuppressStartupBanner="true" RuntimeLibrary="$(TrainerBridgeRuntime)" Optimization="$(TrainerBridgeOptimization)" DebugInformationFormat="ProgramDatabase" ProgramDataBaseFileName="$(TrainerBridgeIntDir)Compiler.pdb" ObjectFileName="$(TrainerBridgeIntDir)" TrackFileAccess="false" ToolPath="$(VCToolsInstallDir)bin\Hostx64\x64\" ToolArchitecture="x64" />
+		<ItemGroup>
+			<TrainerRuntimeObject Include="@(TrainerRuntimeSource-&gt;'$(TrainerBridgeIntDir)%(Filename).obj')" />
+		</ItemGroup>
+		<Link Sources="@(TrainerRuntimeObject)" LinkDLL="true" TargetMachine="MachineX64" AdditionalDependencies="$(TrainerMinHookLibrary);user32.lib;kernel32.lib;advapi32.lib" AdditionalLibraryDirectories="$(LibraryPath)" OutputFile="$(TrainerBridgeStagedOutput)" ImportLibrary="$(TrainerBridgeIntDir)BlazblueRuntimeBridge.lib" GenerateDebugInformation="DebugFull" ProgramDatabaseFile="$(TrainerBridgeIntDir)BlazblueRuntimeBridge.pdb" GenerateManifest="true" ManifestEmbed="true" LinkIncremental="false" SuppressStartupBanner="true" TrackFileAccess="false" ToolPath="$(VCToolsInstallDir)bin\Hostx64\x64\" ToolArchitecture="x64" />
+		<Copy SourceFiles="$(TrainerBridgeStagedOutput);$(TrainerBridgeIntDir)BlazblueRuntimeBridge.pdb" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+		<Message Text="Runtime bridge -&gt; $(TrainerBridgeOutput)" Importance="High" />
+	</Target>
+	<!-- Native Visual Studio uses these logs to notice private source/script
+	   changes even when all application sources are already up to date. -->
+	<Target Name="TrackTrainerRuntimeBridgeOutputs" BeforeTargets="FinalizeBuildStatus">
+		<PropertyGroup>
+			<TrainerBridgeTrackingRoot>^@(TrainerRuntimeSource-&gt;'%(FullPath)', '|')</TrainerBridgeTrackingRoot>
+		</PropertyGroup>
+		<MakeDir Directories="$(TLogLocation)" />
+		<WriteLinesToFile File="$(TLogLocation)RuntimeBridge.read.1.tlog" Encoding="Unicode" Overwrite="true" WriteOnlyWhenDifferent="true" Lines="$(TrainerBridgeTrackingRoot);@(TrainerRuntimeHeader-&gt;'%(FullPath)');$(TrainerScriptHeader);$(TrainerSourceRoot)\Source\BlazblueTrainer\Scripts\GrantAllPotentials.js;$(TrainerSourceRoot)\CMake\PotentialScript.h.in;$(TrainerSourceRoot)\CMake\GeneratePotentialScript.cmake;$(TrainerMinHookLibrary);$(ProjectDir)Dependencies.$(Configuration).props;$(TrainerBridgeTargetsFile)" />
+		<WriteLinesToFile File="$(TLogLocation)RuntimeBridge.write.1.tlog" Encoding="Unicode" Overwrite="true" WriteOnlyWhenDifferent="true" Lines="$(TrainerBridgeTrackingRoot);$(TrainerBridgeOutput);$(OutDir)BlazblueRuntimeBridge.pdb" />
+	</Target>
+	<Target Name="CleanTrainerRuntimeBridge" AfterTargets="Clean">
+		<Delete Files="$(TrainerBridgeOutput);$(OutDir)BlazblueRuntimeBridge.pdb;$(TrainerBridgeStagedOutput);$(TrainerBridgeIntDir)BlazblueRuntimeBridge.pdb;@(TrainerRuntimeSource-&gt;'$(TrainerBridgeIntDir)%(Filename).obj');$(TrainerBridgeIntDir)Compiler.pdb;$(TrainerBridgeIntDir)BlazblueRuntimeBridge.lib;$(TrainerBridgeIntDir)BlazblueRuntimeBridge.exp" />
+	</Target>
+</Project>

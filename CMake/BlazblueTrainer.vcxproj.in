@@ -1,101 +1,148 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
-  </ItemGroup>
-  <PropertyGroup Label="Globals">
-    <ProjectGuid>{73FB3A47-66BD-4FE9-AB93-6B1AC9ED82E8}</ProjectGuid>
-    <Keyword>Win32Proj</Keyword>
-    <RootNamespace>BlazblueTrainer</RootNamespace>
-    <ProjectName>BlazblueTrainer</ProjectName>
-    <WindowsTargetPlatformVersion>@CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION@</WindowsTargetPlatformVersion>
-    <TrainerSourceRoot>@XmlSourceRoot@</TrainerSourceRoot>
-    <TrainerBinaryRoot>@XmlBinaryRoot@</TrainerBinaryRoot>
-    <TrainerIntermediateRoot>@XmlIntermediateRoot@</TrainerIntermediateRoot>
-    <MSBuildProjectExtensionsPath>$(TrainerIntermediateRoot)\NuGet\</MSBuildProjectExtensionsPath>
-    <VcpkgEnabled>false</VcpkgEnabled>
-  </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>@CMAKE_VS_PLATFORM_TOOLSET@</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration"><UseDebugLibraries>true</UseDebugLibraries></PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration"><UseDebugLibraries>false</UseDebugLibraries><WholeProgramOptimization>true</WholeProgramOptimization></PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="$(ProjectDir)Dependencies.$(Configuration).props" Condition="Exists('$(ProjectDir)Dependencies.$(Configuration).props')" />
-  <PropertyGroup>
-    <WindowsPackageType>None</WindowsPackageType>
-    <UseWinUI>true</UseWinUI>
-    <CppWinRTEnabled>true</CppWinRTEnabled>
-    <CppWinRTOptimized>true</CppWinRTOptimized>
-    <CppWinRTRootNamespaceAutoMerge>true</CppWinRTRootNamespaceAutoMerge>
-    <MinimalCoreWin>true</MinimalCoreWin>
-    <XamlLanguage>CppWinRT</XamlLanguage>
-    <DefaultXamlRuntime>WinUI</DefaultXamlRuntime>
-    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
-    <OutDir>$(TrainerBinaryRoot)\$(Configuration)\</OutDir>
-    <IntDir>$(TrainerIntermediateRoot)\BlazblueTrainer\$(Configuration)\</IntDir>
-    <GeneratedFilesDir>$(IntDir)Generated Files\</GeneratedFilesDir>
-    <XamlMetaDataProviderCpp>$(GeneratedFilesDir)XamlMetaDataProvider.cpp</XamlMetaDataProviderCpp>
-    <XamlMetaDataProviderIdl>$(GeneratedFilesDir)XamlMetaDataProvider.idl</XamlMetaDataProviderIdl>
-    <GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
-  </PropertyGroup>
-  <ItemGroup><ProjectCapability Include="WinUI" /></ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
-    <PackageReference Include="Microsoft.Windows.CppWinRT" Version="2.0.250303.1" />
-  </ItemGroup>
-  <ItemDefinitionGroup>
-    <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
-      <WarningLevel>Level4</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;UNICODE;_UNICODE;$(TrainerDependencyDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IntDir);$(TrainerSourceRoot)\Source\BlazblueTrainer\Application;$(TrainerSourceRoot)\Source\BlazblueTrainer\Core;$(TrainerSourceRoot)\Source\BlazblueTrainer\Public;$(TrainerYamlInclude);$(TrainerLz4Include);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>$(TrainerYamlLibrary);$(TrainerLz4Library);comctl32.lib;winmm.lib;shell32.lib;ole32.lib;advapi32.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-    <Manifest><AdditionalManifestFiles>$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles></Manifest>
-  </ItemDefinitionGroup>
-  <ItemGroup>
+	<ItemGroup Label="ProjectConfigurations">
+		<ProjectConfiguration Include="Debug|x64">
+			<Configuration>Debug</Configuration>
+			<Platform>x64</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Release|x64">
+			<Configuration>Release</Configuration>
+			<Platform>x64</Platform>
+		</ProjectConfiguration>
+	</ItemGroup>
+	<PropertyGroup Label="Globals">
+		<ProjectGuid>{73FB3A47-66BD-4FE9-AB93-6B1AC9ED82E8}</ProjectGuid>
+		<Keyword>Win32Proj</Keyword>
+		<RootNamespace>BlazblueTrainer</RootNamespace>
+		<ProjectName>BlazblueTrainer</ProjectName>
+		<WindowsTargetPlatformVersion>@CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION@</WindowsTargetPlatformVersion>
+		<TrainerSourceRoot>@XmlSourceRoot@</TrainerSourceRoot>
+		<TrainerBinaryRoot>@XmlBinaryRoot@</TrainerBinaryRoot>
+		<TrainerIntermediateRoot>@XmlIntermediateRoot@</TrainerIntermediateRoot>
+		<TrainerCMakeCommand>@XmlCMakeCommand@</TrainerCMakeCommand>
+		<MSBuildProjectExtensionsPath>$(TrainerIntermediateRoot)\NuGet\</MSBuildProjectExtensionsPath>
+		<VcpkgEnabled>false</VcpkgEnabled>
+	</PropertyGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+	<PropertyGroup Label="Configuration">
+		<ConfigurationType>Application</ConfigurationType>
+		<PlatformToolset>@CMAKE_VS_PLATFORM_TOOLSET@</PlatformToolset>
+		<CharacterSet>Unicode</CharacterSet>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+		<UseDebugLibraries>true</UseDebugLibraries>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+		<UseDebugLibraries>false</UseDebugLibraries>
+		<WholeProgramOptimization>true</WholeProgramOptimization>
+	</PropertyGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+	<Import Project="$(ProjectDir)Dependencies.$(Configuration).props" Condition="Exists('$(ProjectDir)Dependencies.$(Configuration).props')" />
+	<PropertyGroup>
+		<WindowsPackageType>None</WindowsPackageType>
+		<UseWinUI>true</UseWinUI>
+		<CppWinRTEnabled>true</CppWinRTEnabled>
+		<CppWinRTOptimized>true</CppWinRTOptimized>
+		<CppWinRTRootNamespaceAutoMerge>true</CppWinRTRootNamespaceAutoMerge>
+		<MinimalCoreWin>true</MinimalCoreWin>
+		<XamlLanguage>CppWinRT</XamlLanguage>
+		<DefaultXamlRuntime>WinUI</DefaultXamlRuntime>
+		<RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+		<OutDir>$(TrainerBinaryRoot)\$(Configuration)\</OutDir>
+		<IntDir>$(TrainerIntermediateRoot)\BlazblueTrainer\$(Configuration)\</IntDir>
+		<GeneratedFilesDir>$(IntDir)Generated Files\</GeneratedFilesDir>
+		<XamlMetaDataProviderCpp>$(GeneratedFilesDir)XamlMetaDataProvider.cpp</XamlMetaDataProviderCpp>
+		<XamlMetaDataProviderIdl>$(GeneratedFilesDir)XamlMetaDataProvider.idl</XamlMetaDataProviderIdl>
+		<GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectCapability Include="WinUI" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260317003" />
+		<PackageReference Include="Microsoft.Windows.CppWinRT" Version="2.0.250303.1" />
+	</ItemGroup>
+	<ItemDefinitionGroup>
+		<ClCompile>
+			<PrecompiledHeader>Use</PrecompiledHeader>
+			<PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
+			<WarningLevel>Level4</WarningLevel>
+			<SDLCheck>true</SDLCheck>
+			<ConformanceMode>true</ConformanceMode>
+			<LanguageStandard>stdcpp20</LanguageStandard>
+			<AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+			<PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;UNICODE;_UNICODE;DISABLE_XAML_GENERATED_MAIN;$(TrainerDependencyDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+			<AdditionalIncludeDirectories>$(IntDir);$(TrainerSourceRoot)\Source\BlazblueTrainer\Application;$(TrainerSourceRoot)\Source\BlazblueTrainer\Core;$(TrainerSourceRoot)\Source\BlazblueTrainer\Public;$(TrainerYamlInclude);$(TrainerLz4Include);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+		</ClCompile>
+		<Link>
+			<SubSystem>Windows</SubSystem>
+			<AdditionalDependencies>$(TrainerYamlLibrary);$(TrainerLz4Library);comctl32.lib;winmm.lib;shell32.lib;ole32.lib;advapi32.lib;bcrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+		</Link>
+		<Manifest>
+			<AdditionalManifestFiles>$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
+		</Manifest>
+	</ItemDefinitionGroup>
+	<ItemGroup>
 @CoreCompileItems@
 @HeaderItems@
-    <ApplicationDefinition Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType><XamlRuntime>WinUI</XamlRuntime></ApplicationDefinition>
-    <Page Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType><XamlRuntime>WinUI</XamlRuntime></Page>
-    <Page Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyWindow.xaml"><Generator>MSBuild:Compile</Generator><SubType>Designer</SubType><XamlRuntime>WinUI</XamlRuntime></Page>
-    <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml.h"><DependentUpon>App.xaml</DependentUpon></ClInclude>
-    <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml.h"><DependentUpon>MainWindow.xaml</DependentUpon></ClInclude>
-    <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Pch.h" />
-    <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\UiHelpers.h" />
-    <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyWindow.xaml.h"><DependentUpon>DataBodyWindow.xaml</DependentUpon></ClInclude>
-    <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Pch.cpp"><PrecompiledHeader>Create</PrecompiledHeader></ClCompile>
-    <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml.cpp"><DependentUpon>App.xaml</DependentUpon></ClCompile>
-    <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml.cpp"><DependentUpon>MainWindow.xaml</DependentUpon></ClCompile>
-    <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyWindow.xaml.cpp"><DependentUpon>DataBodyWindow.xaml</DependentUpon></ClCompile>
-    <ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
-    <ClCompile Include="$(GeneratedFilesDir)XamlMetaDataProvider.cpp" />
-    <ClCompile Include="$(IntDir)XamlTypeInfo.g.cpp" />
-    <ClCompile Include="$(IntDir)XamlTypeInfo.Impl.g.cpp" />
-    <Midl Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Types.idl"><SubType>Code</SubType></Midl>
-    <None Include="$(TrainerSourceRoot)\Config\Defaults.yaml" />
-  </ItemGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <Import Project="$(TrainerSourceRoot)\CMake\WinuiCompatibility.targets" />
-  <Target Name="CompileWinUiXamlBeforeClCompile" BeforeTargets="ClCompile" DependsOnTargets="MarkupCompilePass1;MarkupCompilePass2" Condition="'@(Page)@(ApplicationDefinition)' != ''" />
-  <Target Name="CopyTrainerConfig" AfterTargets="Build">
-    <Error Condition="!Exists('$(TrainerSourceRoot)\Config\Defaults.yaml')" Text="Config\Defaults.yaml was not found." />
-    <MakeDir Directories="$(OutDir)Config" />
-    <Copy SourceFiles="$(TrainerSourceRoot)\Config\Defaults.yaml" DestinationFiles="$(OutDir)Config\Defaults.yaml" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(TrainerYamlRuntime)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="'$(TrainerYamlRuntime)' != ''" />
-    <Copy SourceFiles="$(TrainerLz4Runtime)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="'$(TrainerLz4Runtime)' != ''" />
-  </Target>
+		<ApplicationDefinition Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml">
+			<Generator>MSBuild:Compile</Generator>
+			<SubType>Designer</SubType>
+			<XamlRuntime>WinUI</XamlRuntime>
+		</ApplicationDefinition>
+		<Page Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml">
+			<Generator>MSBuild:Compile</Generator>
+			<SubType>Designer</SubType>
+			<XamlRuntime>WinUI</XamlRuntime>
+		</Page>
+		<Page Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyEditor.xaml">
+			<Generator>MSBuild:Compile</Generator>
+			<SubType>Designer</SubType>
+			<XamlRuntime>WinUI</XamlRuntime>
+		</Page>
+		<ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml.h">
+			<DependentUpon>App.xaml</DependentUpon>
+		</ClInclude>
+		<ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml.h">
+			<DependentUpon>MainWindow.xaml</DependentUpon>
+		</ClInclude>
+		<ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Pch.h" />
+		<ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\UiHelpers.h" />
+		<ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyEditor.xaml.h">
+			<DependentUpon>DataBodyEditor.xaml</DependentUpon>
+		</ClInclude>
+		<ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Pch.cpp">
+			<PrecompiledHeader>Create</PrecompiledHeader>
+		</ClCompile>
+		<ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml.cpp">
+			<DependentUpon>App.xaml</DependentUpon>
+		</ClCompile>
+		<ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml.cpp">
+			<DependentUpon>MainWindow.xaml</DependentUpon>
+		</ClCompile>
+		<ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyEditor.xaml.cpp">
+			<DependentUpon>DataBodyEditor.xaml</DependentUpon>
+		</ClCompile>
+		<ClCompile Include="$(GeneratedFilesDir)module.g.cpp" />
+		<ClCompile Include="$(GeneratedFilesDir)XamlMetaDataProvider.cpp" />
+		<ClCompile Include="$(IntDir)XamlTypeInfo.g.cpp" />
+		<ClCompile Include="$(IntDir)XamlTypeInfo.Impl.g.cpp" />
+		<Midl Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Types.idl">
+			<SubType>Code</SubType>
+		</Midl>
+		<None Include="$(TrainerSourceRoot)\Config\Defaults.yaml" />
+	</ItemGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+	<Import Project="$(TrainerSourceRoot)\CMake\WinuiCompatibility.targets" />
+	<Import Project="$(TrainerSourceRoot)\CMake\RuntimeBridge.targets" />
+	<Target Name="CompileWinUiXamlBeforeClCompile" BeforeTargets="ClCompile" DependsOnTargets="MarkupCompilePass1;MarkupCompilePass2" Condition="'@(Page)@(ApplicationDefinition)' != ''" />
+	<Target Name="CopyTrainerConfig" AfterTargets="Build">
+		<Error Condition="!Exists('$(TrainerSourceRoot)\Config\Defaults.yaml')" Text="Config\Defaults.yaml was not found." />
+		<MakeDir Directories="$(OutDir)Config" />
+		<Copy SourceFiles="$(TrainerSourceRoot)\Config\Defaults.yaml" DestinationFiles="$(OutDir)Config\Defaults.yaml" SkipUnchangedFiles="true" />
+		<Copy SourceFiles="$(TrainerSourceRoot)\ThirdParty\MinHook.LICENSE.txt" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+		<Copy SourceFiles="$(TrainerYamlRuntime)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="'$(TrainerYamlRuntime)' != ''" />
+		<Copy SourceFiles="$(TrainerLz4Runtime)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="'$(TrainerLz4Runtime)' != ''" />
+		<Copy SourceFiles="$(TrainerMinHookRuntime)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" Condition="'$(TrainerMinHookRuntime)' != ''" />
+	</Target>
 </Project>

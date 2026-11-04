@@ -1,117 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
-  </PropertyGroup>
-  <Target Name="DeduplicateWindowsAppRuntimeInitializer"
-          BeforeTargets="WarnCompileDuplicatedFilename;ClCompile">
-    <ItemGroup>
-      <TrainerRuntimeInitializer Include="@(ClCompile)"
-          Condition="'%(ClCompile.Filename)%(ClCompile.Extension)' == 'WindowsAppRuntimeAutoInitializer.cpp'" />
-    </ItemGroup>
-    <RemoveDuplicates Inputs="@(TrainerRuntimeInitializer)">
-      <Output TaskParameter="Filtered" ItemName="TrainerUniqueRuntimeInitializer" />
-    </RemoveDuplicates>
-    <ItemGroup>
-      <ClCompile Remove="@(TrainerRuntimeInitializer)" />
-      <ClCompile Include="@(TrainerUniqueRuntimeInitializer)" />
-      <TrainerRuntimeInitializer Remove="@(TrainerRuntimeInitializer)" />
-      <TrainerUniqueRuntimeInitializer Remove="@(TrainerUniqueRuntimeInitializer)" />
-    </ItemGroup>
-  </Target>
-  <UsingTask TaskName="BlazblueRunMetadataMerge" TaskFactory="RoslynCodeTaskFactory"
-             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
-    <ParameterGroup>
-      <ToolDirectory ParameterType="System.String" />
-      <ExecutableDirectories ParameterType="System.String" />
-      <Inputs ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
-      <MetadataDirectories ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
-      <OutputDirectory ParameterType="System.String" Required="true" />
-      <NamespaceDepth ParameterType="System.Int32" Required="true" />
-      <SkipValidation ParameterType="System.Boolean" />
-    </ParameterGroup>
-    <Task>
-      <Using Namespace="System" />
-      <Using Namespace="System.IO" />
-      <Using Namespace="System.Text" />
-      <Using Namespace="System.Diagnostics" />
-      <Using Namespace="Microsoft.Build.Framework" />
-      <Code Type="Fragment" Language="cs"><![CDATA[
-        string Tool = null;
-        foreach (string Directory in ((ToolDirectory ?? "") + ";" + (ExecutableDirectories ?? "")).Split(';'))
-        {
-            if (string.IsNullOrWhiteSpace(Directory)) continue;
-            string Candidate = Path.Combine(Directory, "mdmerge.exe");
-            if (File.Exists(Candidate)) { Tool = Candidate; break; }
-        }
-        if (Tool == null)
-        {
-            Log.LogError("The selected Windows SDK did not provide mdmerge.exe.");
-            return false;
-        }
-        var Arguments = new StringBuilder();
-        if (!SkipValidation) Arguments.Append("-v ");
-        if (MetadataDirectories != null)
-            foreach (var Directory in MetadataDirectories)
-                Arguments.Append("-metadata_dir \"").Append(Directory.ItemSpec.TrimEnd('\\', '/')).Append("\\.\" ");
-        foreach (var Input in Inputs)
-            Arguments.Append("-i \"").Append(Input.ItemSpec).Append("\" ");
-        Arguments.Append("-o \"").Append(OutputDirectory.TrimEnd('\\', '/')).Append("\" -partial -n:").Append(NamespaceDepth);
-        try
-        {
-            using (var Process = new Process())
-            {
-                Process.StartInfo = new ProcessStartInfo(Tool, Arguments.ToString())
-                {
-                    UseShellExecute = false, CreateNoWindow = true,
-                    RedirectStandardOutput = true, RedirectStandardError = true
-                };
-                Process.OutputDataReceived += (Sender, Event) =>
-                {
-                    if (Event.Data != null) Log.LogMessage(MessageImportance.Low, Event.Data);
-                };
-                Process.ErrorDataReceived += (Sender, Event) =>
-                {
-                    if (Event.Data != null) Log.LogMessage(MessageImportance.High, Event.Data);
-                };
-                Process.Start();
-                Process.BeginOutputReadLine();
-                Process.BeginErrorReadLine();
-                Process.WaitForExit();
-                if (Process.ExitCode != 0)
-                {
-                    Log.LogError("Metadata merging failed with exit code {0}.", Process.ExitCode);
-                    return false;
-                }
-            }
-        }
-        catch (System.ComponentModel.Win32Exception Error)
-        {
-            Log.LogErrorFromException(Error);
-            return false;
-        }
-      ]]></Code>
-    </Task>
-  </UsingTask>
-  <!-- The SDK's mdmerge response reader treats UTF-8 paths as the system ANSI code page. -->
-  <Target Name="CppWinRTMergeProjectWinMDInputs"
-          DependsOnTargets="Midl;GetCppWinRTMdMergeInputs;_CppWinRTGenerateMergeProjectWinMDDependencyCache;$(CppWinRTMergeProjectWinMDInputsDependsOn)"
-          Inputs="$(MSBuildAllProjects);@(CppWinRTMdMergeInputs);@(CustomAdditionalMdMergeInputs)"
-          Outputs="$(CppWinRTProjectWinMD)">
-    <PropertyGroup>
-      <TrainerMergeDepth Condition="'$(CppWinRTNamespaceMergeDepth)' != ''">$(CppWinRTNamespaceMergeDepth)</TrainerMergeDepth>
-      <TrainerMergeDepth Condition="'$(TrainerMergeDepth)' == ''">$(RootNamespace.Split('.').Length)</TrainerMergeDepth>
-      <TrainerSkipValidation Condition="'$(CppWinRTMergeNoValidate)' == 'true'">true</TrainerSkipValidation>
-      <TrainerSkipValidation Condition="'$(TrainerSkipValidation)' == ''">false</TrainerSkipValidation>
-    </PropertyGroup>
-    <MakeDir Directories="$(CppWinRTUnmergedDir);$(CppWinRTMergedDir)" />
-    <BlazblueRunMetadataMerge ToolDirectory="$(MdMergePath)" ExecutableDirectories="$(ExecutablePath)"
-        Inputs="@(CppWinRTMdMergeInputs)" MetadataDirectories="@(CppWinRTMdMergeMetadataDirectories)"
-        OutputDirectory="$(CppWinRTMergedDir)" NamespaceDepth="$(TrainerMergeDepth)"
-        SkipValidation="$(TrainerSkipValidation)" Condition="'@(CppWinRTMdMergeInputs)' != ''" />
-    <ItemGroup>
-      <_MdMergedOutput Remove="@(_MdMergedOutput)" />
-      <_MdMergedOutput Include="$(CppWinRTMergedDir)*.winmd" />
-    </ItemGroup>
-  </Target>
+	<PropertyGroup>
+		<MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+	</PropertyGroup>
+	<Target Name="DeduplicateWindowsAppRuntimeInitializer" BeforeTargets="WarnCompileDuplicatedFilename;ClCompile">
+		<ItemGroup>
+			<TrainerRuntimeInitializer Include="@(ClCompile)" Condition="'%(ClCompile.Filename)%(ClCompile.Extension)' == 'WindowsAppRuntimeAutoInitializer.cpp'" />
+		</ItemGroup>
+		<RemoveDuplicates Inputs="@(TrainerRuntimeInitializer)">
+			<Output TaskParameter="Filtered" ItemName="TrainerUniqueRuntimeInitializer" />
+		</RemoveDuplicates>
+		<ItemGroup>
+			<ClCompile Remove="@(TrainerRuntimeInitializer)" />
+			<ClCompile Include="@(TrainerUniqueRuntimeInitializer)" />
+			<TrainerRuntimeInitializer Remove="@(TrainerRuntimeInitializer)" />
+			<TrainerUniqueRuntimeInitializer Remove="@(TrainerUniqueRuntimeInitializer)" />
+		</ItemGroup>
+	</Target>
+	<UsingTask TaskName="BlazblueRunMetadataMerge" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+		<ParameterGroup>
+			<ToolDirectory ParameterType="System.String" />
+			<ExecutableDirectories ParameterType="System.String" />
+			<Inputs ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+			<MetadataDirectories ParameterType="Microsoft.Build.Framework.ITaskItem[]" />
+			<OutputDirectory ParameterType="System.String" Required="true" />
+			<NamespaceDepth ParameterType="System.Int32" Required="true" />
+			<SkipValidation ParameterType="System.Boolean" />
+		</ParameterGroup>
+		<Task>
+			<Using Namespace="System" />
+			<Using Namespace="System.IO" />
+			<Using Namespace="System.Text" />
+			<Using Namespace="System.Diagnostics" />
+			<Using Namespace="Microsoft.Build.Framework" />
+			<Code Type="Fragment" Language="cs"><![CDATA[
+				string Tool = null;
+				foreach (string Directory in ((ToolDirectory ?? "") + ";" + (ExecutableDirectories ?? "")).Split(';'))
+				{
+					if (string.IsNullOrWhiteSpace(Directory)) continue;
+					string Candidate = Path.Combine(Directory, "mdmerge.exe");
+					if (File.Exists(Candidate)) { Tool = Candidate; break; }
+				}
+				if (Tool == null)
+				{
+					Log.LogError("The selected Windows SDK did not provide mdmerge.exe.");
+					return false;
+				}
+				var Arguments = new StringBuilder();
+				if (!SkipValidation) Arguments.Append("-v ");
+				if (MetadataDirectories != null)
+					foreach (var Directory in MetadataDirectories)
+						Arguments.Append("-metadata_dir \"").Append(Directory.ItemSpec.TrimEnd('\\', '/')).Append("\\.\" ");
+				foreach (var Input in Inputs)
+					Arguments.Append("-i \"").Append(Input.ItemSpec).Append("\" ");
+				Arguments.Append("-o \"").Append(OutputDirectory.TrimEnd('\\', '/')).Append("\" -partial -n:").Append(NamespaceDepth);
+				try
+				{
+					using (var Process = new Process())
+					{
+						Process.StartInfo = new ProcessStartInfo(Tool, Arguments.ToString())
+						{
+							UseShellExecute = false, CreateNoWindow = true,
+							RedirectStandardOutput = true, RedirectStandardError = true
+						};
+						Process.OutputDataReceived += (Sender, Event) =>
+						{
+							if (Event.Data != null) Log.LogMessage(MessageImportance.Low, Event.Data);
+						};
+						Process.ErrorDataReceived += (Sender, Event) =>
+						{
+							if (Event.Data != null) Log.LogMessage(MessageImportance.High, Event.Data);
+						};
+						Process.Start();
+						Process.BeginOutputReadLine();
+						Process.BeginErrorReadLine();
+						Process.WaitForExit();
+						if (Process.ExitCode != 0)
+						{
+							Log.LogError("Metadata merging failed with exit code {0}.", Process.ExitCode);
+							return false;
+						}
+					}
+				}
+				catch (System.ComponentModel.Win32Exception Error)
+				{
+					Log.LogErrorFromException(Error);
+					return false;
+				}
+			]]></Code>
+		</Task>
+	</UsingTask>
+	<!-- The SDK's mdmerge response reader treats UTF-8 paths as the system ANSI code page. -->
+	<Target Name="CppWinRTMergeProjectWinMDInputs" DependsOnTargets="Midl;GetCppWinRTMdMergeInputs;_CppWinRTGenerateMergeProjectWinMDDependencyCache;$(CppWinRTMergeProjectWinMDInputsDependsOn)" Inputs="$(MSBuildAllProjects);@(CppWinRTMdMergeInputs);@(CustomAdditionalMdMergeInputs)" Outputs="$(CppWinRTProjectWinMD)">
+		<PropertyGroup>
+			<TrainerMergeDepth Condition="'$(CppWinRTNamespaceMergeDepth)' != ''">$(CppWinRTNamespaceMergeDepth)</TrainerMergeDepth>
+			<TrainerMergeDepth Condition="'$(TrainerMergeDepth)' == ''">$(RootNamespace.Split('.').Length)</TrainerMergeDepth>
+			<TrainerSkipValidation Condition="'$(CppWinRTMergeNoValidate)' == 'true'">true</TrainerSkipValidation>
+			<TrainerSkipValidation Condition="'$(TrainerSkipValidation)' == ''">false</TrainerSkipValidation>
+		</PropertyGroup>
+		<MakeDir Directories="$(CppWinRTUnmergedDir);$(CppWinRTMergedDir)" />
+		<BlazblueRunMetadataMerge ToolDirectory="$(MdMergePath)" ExecutableDirectories="$(ExecutablePath)" Inputs="@(CppWinRTMdMergeInputs)" MetadataDirectories="@(CppWinRTMdMergeMetadataDirectories)" OutputDirectory="$(CppWinRTMergedDir)" NamespaceDepth="$(TrainerMergeDepth)" SkipValidation="$(TrainerSkipValidation)" Condition="'@(CppWinRTMdMergeInputs)' != ''" />
+		<ItemGroup>
+			<_MdMergedOutput Remove="@(_MdMergedOutput)" />
+			<_MdMergedOutput Include="$(CppWinRTMergedDir)*.winmd" />
+		</ItemGroup>
+	</Target>
 </Project>

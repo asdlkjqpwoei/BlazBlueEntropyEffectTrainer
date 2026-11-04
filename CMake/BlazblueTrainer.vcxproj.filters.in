@@ -1,25 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup>
-    <Filter Include="Core" />
-    <Filter Include="Application" />
-    <Filter Include="Config" />
-  </ItemGroup>
-  <ItemGroup>
+	<ItemGroup>
+		<Filter Include="Core" />
+		<Filter Include="Bridge" />
+		<Filter Include="Application" />
+		<Filter Include="Config" />
+	</ItemGroup>
+	<ItemGroup>
 @FilterItems@
-    <ApplicationDefinition Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml"><Filter>Application</Filter></ApplicationDefinition>
-    <Page Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml"><Filter>Application</Filter></Page>
-    <Page Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyWindow.xaml"><Filter>Application</Filter></Page>
-    <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml.h"><Filter>Application</Filter></ClInclude>
-    <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml.h"><Filter>Application</Filter></ClInclude>
-    <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Pch.h"><Filter>Application</Filter></ClInclude>
-    <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml.cpp"><Filter>Application</Filter></ClCompile>
-    <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml.cpp"><Filter>Application</Filter></ClCompile>
-    <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyWindow.xaml.cpp"><Filter>Application</Filter></ClCompile>
-    <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyWindow.xaml.h"><Filter>Application</Filter></ClInclude>
-    <ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\UiHelpers.h"><Filter>Application</Filter></ClInclude>
-    <ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Pch.cpp"><Filter>Application</Filter></ClCompile>
-    <Midl Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Types.idl"><Filter>Application</Filter></Midl>
-    <None Include="$(TrainerSourceRoot)\Config\Defaults.yaml"><Filter>Config</Filter></None>
-  </ItemGroup>
+		<ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Bridge\PotentialBridge.cpp">
+			<Filter>Bridge</Filter>
+		</ClCompile>
+		<ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Bridge\PerfectBridge.cpp">
+			<Filter>Bridge</Filter>
+		</ClCompile>
+		<ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Bridge\PerfectHooks.cpp">
+			<Filter>Bridge</Filter>
+		</ClCompile>
+		<ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Bridge\PerfectHooks.h">
+			<Filter>Bridge</Filter>
+		</ClInclude>
+		<None Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Scripts\GrantAllPotentials.js">
+			<Filter>Bridge</Filter>
+		</None>
+		<ApplicationDefinition Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml">
+			<Filter>Application</Filter>
+		</ApplicationDefinition>
+		<Page Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml">
+			<Filter>Application</Filter>
+		</Page>
+		<Page Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyEditor.xaml">
+			<Filter>Application</Filter>
+		</Page>
+		<ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml.h">
+			<Filter>Application</Filter>
+		</ClInclude>
+		<ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml.h">
+			<Filter>Application</Filter>
+		</ClInclude>
+		<ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Pch.h">
+			<Filter>Application</Filter>
+		</ClInclude>
+		<ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\App.xaml.cpp">
+			<Filter>Application</Filter>
+		</ClCompile>
+		<ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\MainWindow.xaml.cpp">
+			<Filter>Application</Filter>
+		</ClCompile>
+		<ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyEditor.xaml.cpp">
+			<Filter>Application</Filter>
+		</ClCompile>
+		<ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\DataBodyEditor.xaml.h">
+			<Filter>Application</Filter>
+		</ClInclude>
+		<ClInclude Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\UiHelpers.h">
+			<Filter>Application</Filter>
+		</ClInclude>
+		<ClCompile Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Pch.cpp">
+			<Filter>Application</Filter>
+		</ClCompile>
+		<Midl Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Application\Types.idl">
+			<Filter>Application</Filter>
+		</Midl>
+		<None Include="$(TrainerSourceRoot)\Config\Defaults.yaml">
+			<Filter>Config</Filter>
+		</None>
+	</ItemGroup>
 </Project>

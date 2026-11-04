@@ -6,7 +6,7 @@
 
 ## 编译说明
 
-需要 Windows x64、支持 C++20 的 Visual Studio 桌面 C++ 工具、兼容 Windows App SDK 的 Windows SDK，vcpkg，以及 CMake 4.2 或更高版本。依赖为 yaml-cpp 和 LZ4；Windows 音效使用系统多媒体 API，不需要额外音频文件。
+需要 Windows x64、支持 C++20 的 Visual Studio 桌面 C++ 工具、兼容 Windows App SDK 的 Windows SDK，vcpkg，以及 CMake 4.2 或更高版本。依赖为 yaml-cpp、LZ4 和 MinHook；Windows 音效使用系统多媒体 API，不需要额外音频文件。
 
 ```powershell
 cmake --preset vs2026-x64
@@ -22,8 +22,8 @@ cmake --fresh --preset vs2026-x64 -DVCPKG_ROOT="<自己的 vcpkg 根目录>"
 如果不想依赖vcpkg
 
 ```powershell
-cmake -S . -B out\build\custom -G "Visual Studio 18 2026" -A x64 -DCMAKE_TOOLCHAIN_FILE= -DCMAKE_PREFIX_PATH="<yaml-cpp 与 LZ4 安装前缀>"
-cmake --build out\build\custom --config Release
+cmake -S . -B build\custom -G "Visual Studio 18 2026" -A x64 -DCMAKE_TOOLCHAIN_FILE= -DCMAKE_PREFIX_PATH="<yaml-cpp、LZ4 与 MinHook 安装前缀>"
+cmake --build build\custom --config Release
 ```
 
 如果环境改变
@@ -36,7 +36,7 @@ cmake --build --preset vs2026-x64 --config Release
 ## 测试与使用说明
 
 ```powershell
-ctest --test-dir out\build\vs2026-x64 -C Release --output-on-failure
+ctest --test-dir build -C Release --output-on-failure
 ```
 
 覆盖资源运算、活动对象所有权、失效地址、AP 保存标记、潜能结果校验与主线程桥接、中英切换、UTF-8 安全截断、快捷键音效、更新识别、窗口/DPI，以及合成存档的添加、修改、确认取消、过期文件、备份失败和游戏启动时阻断。安装 Node.js 18 或以上版本时，CTest 还会自动运行潜能授予、重复操作、育成/探索同步和异常阻断的脚本回归测试。
@@ -60,11 +60,10 @@ hotkeys:
   refresh_add: 'Ctrl+1'
   exchange_add: 'Ctrl+2'
   ap_add: 'Ctrl+3'
+  potentials_grant: 'Ctrl+4'
 ```
 
-默认主键盘 `1`、`2`、`3` 分别增加刷新次数、兑换点和 AP，使用界面中的当前增量。快捷键仅在游戏前台且对应目标可写时启用，按住不会连续触发。成功播放短上行双音，失败播放低音；播放异步进行，音频设备不可用会明确报错。
-
-## 存档数据体编辑
+默认主键盘 `1`、`2`、`3` 分别增加刷新次数、兑换点和 AP，使用界面中的当前增量；`4` 为当前角色补齐全部有效潜能。快捷键仅在游戏前台且对应功能可用时启用，按住不会连续触发。系统热键注册与物理按键检测共用防重复状态，注册冲突会自动重试，游戏独占输入时也会持续检测。成功播放短上行双音，失败播放低音；潜能音效在异步操作完成后播放。
 
 只读诊断:
 

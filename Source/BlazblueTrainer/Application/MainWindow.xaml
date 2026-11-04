@@ -1,77 +1,115 @@
-<Window
-    x:Class="BlazblueTrainer.MainWindow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-        <StackPanel Padding="12" Spacing="7">
-            <Grid ColumnSpacing="8">
-                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="90"/></Grid.ColumnDefinitions>
-                <TextBlock x:Name="TitleText" Text="苍翼：混沌效应修改器" VerticalAlignment="Center"
-                           FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                <Button x:Name="LanguageSelector" Grid.Column="1" HorizontalAlignment="Stretch"
-                        Content="English" Click="OnLanguageChanged" />
-            </Grid>
-            <TextBlock x:Name="StatusText" FontSize="12" Opacity="0.75"
-                       Text="正在启动" TextTrimming="CharacterEllipsis" />
-
-            <Border Padding="10" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
-                <StackPanel Spacing="6">
-                    <Grid ColumnSpacing="8">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <TextBlock x:Name="RefreshTitleText" Text="刷新次数" VerticalAlignment="Center" />
-                        <TextBlock x:Name="RefreshShortcutText" Grid.Column="1" FontSize="11" Opacity="0.6" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                        <TextBlock x:Name="RefreshValueText" Grid.Column="2" Text="—" FontSize="16" FontWeight="SemiBold" />
-                    </Grid>
-                    <Grid ColumnSpacing="6">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/></Grid.ColumnDefinitions>
-                        <TextBox x:Name="RefreshSetInput" MinWidth="0" PlaceholderText="设置为" />
-                        <Button x:Name="RefreshSetButton" Grid.Column="1" Content="设置" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnSetRefreshClick" />
-                        <TextBox x:Name="RefreshAddInput" Grid.Column="2" MinWidth="0" PlaceholderText="增加数量" />
-                        <Button x:Name="RefreshAddButton" Grid.Column="3" Content="增加" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnAddRefreshClick" />
-                    </Grid>
-                </StackPanel>
-            </Border>
-
-            <Border Padding="10" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
-                <StackPanel Spacing="6">
-                    <Grid ColumnSpacing="8">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <TextBlock x:Name="ExchangeTitleText" Text="兑换点" VerticalAlignment="Center" />
-                        <TextBlock x:Name="ExchangeShortcutText" Grid.Column="1" FontSize="11" Opacity="0.6" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                        <TextBlock x:Name="ExchangeValueText" Grid.Column="2" Text="—" FontSize="16" FontWeight="SemiBold" />
-                    </Grid>
-                    <Grid ColumnSpacing="6">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/></Grid.ColumnDefinitions>
-                        <TextBox x:Name="ExchangeSetInput" MinWidth="0" PlaceholderText="设置为" />
-                        <Button x:Name="ExchangeSetButton" Grid.Column="1" Content="设置" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnSetExchangeClick" />
-                        <TextBox x:Name="ExchangeAddInput" Grid.Column="2" MinWidth="0" PlaceholderText="增加数量" />
-                        <Button x:Name="ExchangeAddButton" Grid.Column="3" Content="增加" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnAddExchangeClick" />
-                    </Grid>
-                </StackPanel>
-            </Border>
-
-            <Border Padding="10" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
-                <StackPanel Spacing="6">
-                    <Grid ColumnSpacing="8">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <TextBlock x:Name="ApTitleText" Text="AP 点" VerticalAlignment="Center" />
-                        <TextBlock x:Name="ApShortcutText" Grid.Column="1" FontSize="11" Opacity="0.6" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                        <TextBlock x:Name="ApValueText" Grid.Column="2" Text="—" FontSize="16" FontWeight="SemiBold" />
-                    </Grid>
-                    <Grid ColumnSpacing="6">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/><ColumnDefinition Width="*"/><ColumnDefinition Width="52"/></Grid.ColumnDefinitions>
-                        <TextBox x:Name="ApSetInput" MinWidth="0" PlaceholderText="设置为" />
-                        <Button x:Name="ApSetButton" Grid.Column="1" Content="设置" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnSetApClick" />
-                        <TextBox x:Name="ApAddInput" Grid.Column="2" MinWidth="0" PlaceholderText="增加数量" />
-                        <Button x:Name="ApAddButton" Grid.Column="3" Content="增加" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnAddApClick" />
-                    </Grid>
-                </StackPanel>
-            </Border>
-
-            <Button x:Name="AllPotentialsButton" Content="获得当前角色全部潜能"
-                    HorizontalAlignment="Stretch" IsEnabled="False" Click="OnGrantAllPotentialsClick" />
-            <TextBlock x:Name="OperationText" FontSize="12" TextWrapping="Wrap" MinHeight="16" />
-            <Button x:Name="SaveEditorButton" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnOpenDataBodyEditor" />
-        </StackPanel>
-    </ScrollViewer>
+<Window x:Class="BlazblueTrainer.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="using:BlazblueTrainer">
+	<Grid Padding="12" RowSpacing="6">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+		<Grid ColumnSpacing="8">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="90" />
+			</Grid.ColumnDefinitions>
+			<TextBlock x:Name="TitleText" Text="苍翼：混沌效应修改器" VerticalAlignment="Center" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+			<Button x:Name="LanguageSelector" Grid.Column="1" HorizontalAlignment="Stretch" Content="English" Click="OnLanguageChanged" />
+		</Grid>
+		<TextBlock x:Name="StatusText" Grid.Row="1" FontSize="12" Opacity="0.75" Text="正在启动" TextTrimming="CharacterEllipsis" />
+		<Pivot x:Name="MainTabs" Grid.Row="2">
+			<PivotItem x:Name="RuntimeTab">
+				<ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" HorizontalContentAlignment="Center">
+					<StackPanel Spacing="12" Width="600" HorizontalAlignment="Center" Padding="0,12,0,0">
+						<Border Padding="10" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
+							<StackPanel Spacing="6">
+								<Grid ColumnSpacing="8">
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="Auto" />
+										<ColumnDefinition Width="*" />
+										<ColumnDefinition Width="Auto" />
+									</Grid.ColumnDefinitions>
+									<TextBlock x:Name="RefreshTitleText" Text="刷新次数" VerticalAlignment="Center" />
+									<TextBlock x:Name="RefreshShortcutText" Grid.Column="1" FontSize="11" Opacity="0.6" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+									<TextBlock x:Name="RefreshValueText" Grid.Column="2" Text="—" FontSize="16" FontWeight="SemiBold" />
+								</Grid>
+								<Grid ColumnSpacing="6">
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="*" />
+										<ColumnDefinition Width="52" />
+										<ColumnDefinition Width="*" />
+										<ColumnDefinition Width="52" />
+									</Grid.ColumnDefinitions>
+									<TextBox x:Name="RefreshSetInput" MinWidth="0" PlaceholderText="设置为" />
+									<Button x:Name="RefreshSetButton" Grid.Column="1" Content="设置" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnSetRefreshClick" />
+									<TextBox x:Name="RefreshAddInput" Grid.Column="2" MinWidth="0" PlaceholderText="增加数量" />
+									<Button x:Name="RefreshAddButton" Grid.Column="3" Content="增加" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnAddRefreshClick" />
+								</Grid>
+							</StackPanel>
+						</Border>
+						<Border Padding="10" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
+							<StackPanel Spacing="6">
+								<Grid ColumnSpacing="8">
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="Auto" />
+										<ColumnDefinition Width="*" />
+										<ColumnDefinition Width="Auto" />
+									</Grid.ColumnDefinitions>
+									<TextBlock x:Name="ExchangeTitleText" Text="兑换点" VerticalAlignment="Center" />
+									<TextBlock x:Name="ExchangeShortcutText" Grid.Column="1" FontSize="11" Opacity="0.6" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+									<TextBlock x:Name="ExchangeValueText" Grid.Column="2" Text="—" FontSize="16" FontWeight="SemiBold" />
+								</Grid>
+								<Grid ColumnSpacing="6">
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="*" />
+										<ColumnDefinition Width="52" />
+										<ColumnDefinition Width="*" />
+										<ColumnDefinition Width="52" />
+									</Grid.ColumnDefinitions>
+									<TextBox x:Name="ExchangeSetInput" MinWidth="0" PlaceholderText="设置为" />
+									<Button x:Name="ExchangeSetButton" Grid.Column="1" Content="设置" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnSetExchangeClick" />
+									<TextBox x:Name="ExchangeAddInput" Grid.Column="2" MinWidth="0" PlaceholderText="增加数量" />
+									<Button x:Name="ExchangeAddButton" Grid.Column="3" Content="增加" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnAddExchangeClick" />
+								</Grid>
+							</StackPanel>
+						</Border>
+						<Border Padding="10" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
+							<StackPanel Spacing="6">
+								<Grid ColumnSpacing="8">
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="Auto" />
+										<ColumnDefinition Width="*" />
+										<ColumnDefinition Width="Auto" />
+									</Grid.ColumnDefinitions>
+									<TextBlock x:Name="ApTitleText" Text="AP 点" VerticalAlignment="Center" />
+									<TextBlock x:Name="ApShortcutText" Grid.Column="1" FontSize="11" Opacity="0.6" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+									<TextBlock x:Name="ApValueText" Grid.Column="2" Text="—" FontSize="16" FontWeight="SemiBold" />
+								</Grid>
+								<Grid ColumnSpacing="6">
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition Width="*" />
+										<ColumnDefinition Width="52" />
+										<ColumnDefinition Width="*" />
+										<ColumnDefinition Width="52" />
+									</Grid.ColumnDefinitions>
+									<TextBox x:Name="ApSetInput" MinWidth="0" PlaceholderText="设置为" />
+									<Button x:Name="ApSetButton" Grid.Column="1" Content="设置" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnSetApClick" />
+									<TextBox x:Name="ApAddInput" Grid.Column="2" MinWidth="0" PlaceholderText="增加数量" />
+									<Button x:Name="ApAddButton" Grid.Column="3" Content="增加" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnAddApClick" />
+								</Grid>
+							</StackPanel>
+						</Border>
+						<Border Padding="10" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
+							<StackPanel Spacing="4">
+								<ToggleSwitch x:Name="PerfectGuardSwitch" Header="保持无伤判定（正常扣血）" OnContent="已开启" OffContent="已关闭" IsOn="False" IsEnabled="False" Toggled="OnPerfectGuardToggled" />
+								<TextBlock x:Name="PerfectGuardHint" FontSize="11" Opacity="0.65" TextWrapping="Wrap" />
+							</StackPanel>
+						</Border>
+						<Button x:Name="AllPotentialsButton" Content="获得当前角色全部潜能" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnGrantAllPotentialsClick" />
+						<TextBlock x:Name="OperationText" FontSize="12" TextWrapping="Wrap" MinHeight="16" />
+					</StackPanel>
+				</ScrollViewer>
+			</PivotItem>
+			<PivotItem x:Name="OfflineTab">
+				<local:DataBodyEditor x:Name="OfflineEditor" />
+			</PivotItem>
+		</Pivot>
+	</Grid>
 </Window>

@@ -1,13 +1,13 @@
 namespace BlazblueTrainer
 {
-    [default_interface]
-    runtimeclass MainWindow : Microsoft.UI.Xaml.Window
-    {
-        MainWindow();
-    };
-    [default_interface]
-    runtimeclass DataBodyWindow : Microsoft.UI.Xaml.Window
-    {
-        DataBodyWindow();
-    };
+	[default_interface]
+	runtimeclass MainWindow : Microsoft.UI.Xaml.Window
+	{
+		MainWindow();
+	};
+	[default_interface]
+	runtimeclass DataBodyEditor : Microsoft.UI.Xaml.Controls.UserControl
+	{
+		DataBodyEditor();
+	};
 }
