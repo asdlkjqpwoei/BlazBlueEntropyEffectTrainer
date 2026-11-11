@@ -12,10 +12,16 @@ namespace Trainer
 		PerfectHitFunction OriginalNotify{};
 		PerfectHitFunction OriginalStatistics{};
 		PerfectResetFunction OriginalReset{};
+		PerfectScriptFunction OriginalScript{};
 		bool Installed{};
 		bool Initialized{};
-		struct Context { void* Statistics{}; void* Kills{}; };
+		struct Context { void* Statistics{}; void* Kills{}; bool HitResetScript{}; };
 		thread_local Context Active;
+		struct Scope
+		{
+			Context Previous{Active};
+			~Scope() { Active = Previous; }
+		};
 
 		template<class T> T Read(void* Object, std::size_t Offset)
 		{
@@ -30,11 +36,7 @@ namespace Trainer
 
 		void Notify(void* Player, void* Hit, const void* Method)
 		{
-			struct Scope
-			{
-				Context Previous{Active};
-				~Scope() { Active = Previous; }
-			} Restore;
+			Scope Restore;
 			// Nested notifications establish their own scope, including unprotected enemies.
 			Active = {};
 			if (Player && Bound.ShouldProtect(Player))
@@ -68,7 +70,22 @@ namespace Trainer
 		void Reset(void* Object, const void* Method)
 		{
 			if (Object && Active.Kills == Object) return;
+			// End_pt_behit can reset the streak on a later logic frame, after Notify has returned.
+			// Validate ownership at the reset itself so a new run never inherits a cached player.
+			if (Object && Active.HitResetScript)
+			{
+				const auto Owner = Read<void*>(Object, Bound.ComboKillOwner);
+				if (Owner && Bound.ShouldProtect(Owner) && Read<void*>(Owner, Bound.PlayerComboKill) == Object) return;
+			}
 			OriginalReset(Object, Method);
+		}
+
+		void Script(void* Buff, void* Name, void* Parameters, void* Object, const void* Method)
+		{
+			Scope Restore;
+			Active.HitResetScript = Bound.IsHitResetScript(Name);
+			// Keep the buff's remaining cleanup and effects; suppress only its protected streak reset.
+			OriginalScript(Buff, Name, Parameters, Object, Method);
 		}
 
 		bool Check(MH_STATUS Status, std::string& Error)
@@ -83,7 +100,8 @@ namespace Trainer
 	{
 		Error.clear();
 		if (Installed) return true;
-		if (!Bindings.NotifyBeHit || !Bindings.OnBehit || !Bindings.ResetKills || !Bindings.ShouldProtect)
+		if (!Bindings.NotifyBeHit || !Bindings.OnBehit || !Bindings.ResetKills || !Bindings.ShouldProtect ||
+			!Bindings.CallBuffScript || !Bindings.IsHitResetScript)
 		{ Error = "The current game does not expose a compatible perfect-guard API."; return false; }
 		if (!Initialized)
 		{
@@ -91,11 +109,12 @@ namespace Trainer
 			Initialized = true;
 		}
 		Bound = Bindings;
-		const std::array<void*, 3> Targets{reinterpret_cast<void*>(Bound.NotifyBeHit),
-			reinterpret_cast<void*>(Bound.OnBehit), reinterpret_cast<void*>(Bound.ResetKills)};
-		const std::array<void*, 3> Detours{reinterpret_cast<void*>(Notify), reinterpret_cast<void*>(Statistics), reinterpret_cast<void*>(Reset)};
-		std::array<void**, 3> Originals{reinterpret_cast<void**>(&OriginalNotify),
-			reinterpret_cast<void**>(&OriginalStatistics), reinterpret_cast<void**>(&OriginalReset)};
+		const std::array<void*, 4> Targets{reinterpret_cast<void*>(Bound.NotifyBeHit),
+			reinterpret_cast<void*>(Bound.OnBehit), reinterpret_cast<void*>(Bound.ResetKills), reinterpret_cast<void*>(Bound.CallBuffScript)};
+		const std::array<void*, 4> Detours{reinterpret_cast<void*>(Notify), reinterpret_cast<void*>(Statistics),
+			reinterpret_cast<void*>(Reset), reinterpret_cast<void*>(Script)};
+		std::array<void**, 4> Originals{reinterpret_cast<void**>(&OriginalNotify),
+			reinterpret_cast<void**>(&OriginalStatistics), reinterpret_cast<void**>(&OriginalReset), reinterpret_cast<void**>(&OriginalScript)};
 		std::size_t Created{};
 		for (; Created < Targets.size(); ++Created)
 		{
@@ -117,7 +136,8 @@ namespace Trainer
 	{
 		Error.clear();
 		if (!Installed) return true;
-		for (void* Target : {reinterpret_cast<void*>(Bound.NotifyBeHit), reinterpret_cast<void*>(Bound.OnBehit), reinterpret_cast<void*>(Bound.ResetKills)})
+		for (void* Target : {reinterpret_cast<void*>(Bound.NotifyBeHit), reinterpret_cast<void*>(Bound.OnBehit),
+			reinterpret_cast<void*>(Bound.ResetKills), reinterpret_cast<void*>(Bound.CallBuffScript)})
 		{
 			if (!Check(MH_DisableHook(Target), Error) || !Check(MH_RemoveHook(Target), Error)) return false;
 		}

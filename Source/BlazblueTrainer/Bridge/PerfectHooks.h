@@ -7,6 +7,7 @@ namespace Trainer
 {
 	using PerfectHitFunction = void (*)(void*, void*, const void*);
 	using PerfectResetFunction = void (*)(void*, const void*);
+	using PerfectScriptFunction = void (*)(void*, void*, void*, void*, const void*);
 
 	struct PerfectBindings
 	{
@@ -19,6 +20,9 @@ namespace Trainer
 		std::size_t BehitTimes{};
 		std::size_t TotalTakenDamage{};
 		bool (*ShouldProtect)(void*){};
+		PerfectScriptFunction CallBuffScript{};
+		std::size_t ComboKillOwner{};
+		bool (*IsHitResetScript)(void*){};
 	};
 
 	bool InstallPerfectHooks(const PerfectBindings& Bindings, std::string& Error);

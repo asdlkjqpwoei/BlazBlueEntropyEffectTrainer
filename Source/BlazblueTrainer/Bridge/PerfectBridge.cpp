@@ -7,6 +7,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
 namespace
 {
@@ -37,6 +38,8 @@ namespace
 	const void* CurrentMethod{};
 	const void* OnlineMethod{};
 	std::size_t SelfOffset{}, CoopOffset{};
+	int (*StringLength)(void*){};
+	const wchar_t* (*StringChars)(void*){};
 
 	[[noreturn]] void Incompatible()
 	{ throw std::runtime_error("The current game does not expose a compatible perfect-guard API."); }
@@ -65,6 +68,9 @@ namespace
 		std::int32_t (*ValueSize)(void*, std::uint32_t*);
 		std::uint32_t (*InstanceSize)(void*);
 		void* (*CurrentThread)();
+		std::uint32_t (*MethodFlags)(const void*, std::uint32_t*);
+		const void* (*ReturnType)(const void*);
+		const void* (*ParameterType)(const void*, std::uint32_t);
 		HMODULE Module;
 		const void* GameImage{};
 		explicit Api(HMODULE Game) : Module(Game)
@@ -78,6 +84,8 @@ namespace
 			LOAD(TypeKind, "il2cpp_type_get_type"); LOAD(TypeClass, "il2cpp_class_from_type");
 			LOAD(ValueSize, "il2cpp_class_value_size"); LOAD(InstanceSize, "il2cpp_class_instance_size");
 			LOAD(CurrentThread, "il2cpp_thread_current");
+			LOAD(MethodFlags, "il2cpp_method_get_flags"); LOAD(ReturnType, "il2cpp_method_get_return_type");
+			LOAD(ParameterType, "il2cpp_method_get_param");
 #undef LOAD
 			if (!CurrentThread()) Incompatible();
 			const auto Root = Domain();
@@ -138,6 +146,13 @@ namespace
 		}
 	};
 
+	bool IsHitResetScript(void* Name)
+	{
+		if (!Name || StringLength(Name) != 12) return false;
+		const auto Text = StringChars(Name);
+		return Text && std::wstring_view(Text, 12) == L"End_pt_behit";
+	}
+
 	bool Protect(void* Player)
 	{
 		const auto Session = Current.load();
@@ -169,6 +184,23 @@ namespace
 		Bindings.StatisticsOwner = Managed.FieldOffset(Statistics, "Owner", 8, 0x12);
 		Bindings.BehitTimes = Managed.FieldOffset(Statistics, "<BehitTimes>k__BackingField", 4, 0x08);
 		Bindings.TotalTakenDamage = Managed.FieldOffset(Statistics, "<TotalTakenDamage>k__BackingField", 8, 0x11);
+		Bindings.ComboKillOwner = Managed.FieldOffset(Kills, "m_Owner", 8, 0x12);
+		const auto Scripts = Managed.FindClass("BuffScriptMgr");
+		const void* ScriptMethod{};
+		Bindings.CallBuffScript = Managed.Native<Trainer::PerfectScriptFunction>(Scripts, "CallWithParams", 4, &ScriptMethod);
+		std::uint32_t ImplementationFlags{};
+		const auto IsParameter = [&](std::uint32_t Index, int Kind, void* Class = nullptr)
+		{
+			const auto Type = Managed.ParameterType(ScriptMethod, Index);
+			return Type && Managed.TypeKind(Type) == Kind && (!Class || Managed.TypeClass(Type) == Class);
+		};
+		const auto ReturnType = Managed.ReturnType(ScriptMethod);
+		if (!(Managed.MethodFlags(ScriptMethod, &ImplementationFlags) & 0x10) || !ReturnType ||
+			Managed.TypeKind(ReturnType) != 0x01 || !IsParameter(0, 0x12, Managed.FindClass("Buff")) ||
+			!IsParameter(1, 0x0e) || !IsParameter(2, 0x12, Managed.FindClass("ParamSet")) || !IsParameter(3, 0x1c)) Incompatible();
+		StringLength = Export<decltype(StringLength)>(Module, "il2cpp_string_length");
+		StringChars = Export<decltype(StringChars)>(Module, "il2cpp_string_chars");
+		Bindings.IsHitResetScript = IsHitResetScript;
 		SelfOffset = Managed.FieldOffset(Battle, "PlayerSelf", 8, 0x12);
 		CoopOffset = Managed.FieldOffset(Battle, "IsLocalCoopMode", 1, 0x02);
 		CurrentBattle = Managed.Native<CurrentFunction>(Battle, "get_Cur", 0, &CurrentMethod);
