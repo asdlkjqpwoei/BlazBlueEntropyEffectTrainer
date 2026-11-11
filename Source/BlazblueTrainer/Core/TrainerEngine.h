@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Config.h"
+#include "EventAmplification.h"
 #include "Il2CppScanner.h"
 #include "Operations.h"
 #include "PerfectGuard.h"
@@ -103,6 +104,7 @@ namespace Trainer
 			std::string& Error);
 		bool GrantAllPotentials(TrainerPotentialResult& Result, std::string& Error);
 		bool SetPerfectGuard(bool Enabled, std::string& Error);
+		bool SetEventAmplification(bool Enabled, std::string& Error);
 		std::string Text(const std::string& Key) const;
 		std::string Translate(const std::string& Message) const;
 		void SetLanguage(TrainerLanguage Language);
@@ -117,7 +119,8 @@ namespace Trainer
 			const std::shared_ptr<RemoteProcess>& Process,
 			std::stop_token StopToken);
 		void UpdatePuertsRuntimeCandidates(
-			const std::shared_ptr<RemoteProcess>& Process);
+			const std::shared_ptr<RemoteProcess>& Process,
+			bool CaptureRefresh, bool CaptureExchange, bool CaptureAp);
 		void UpdateDynamicRefreshCandidates(
 			const std::shared_ptr<RemoteProcess>& Process);
 		bool RefreshSnapshot(const std::shared_ptr<RemoteProcess>& Process);
@@ -151,6 +154,7 @@ namespace Trainer
 		std::atomic<TrainerLanguage> CurrentLanguage{ TrainerLanguageChinese };
 		std::atomic<bool> IsRunning{ false };
 		PerfectGuard PerfectProtection;
+		EventAmplification AmplificationEvents;
 		std::jthread MonitorThread;
 		mutable std::mutex StateMutex;
 		std::condition_variable_any WakeEvent;

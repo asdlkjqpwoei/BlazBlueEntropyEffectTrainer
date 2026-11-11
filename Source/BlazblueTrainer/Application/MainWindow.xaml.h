@@ -31,6 +31,8 @@ namespace winrt::BlazblueTrainer::implementation
 		void OnLanguageChanged(Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
 		winrt::fire_and_forget OnPerfectGuardToggled(
 			Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
+		winrt::fire_and_forget OnEventAmplificationToggled(
+			Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&);
 
 	private:
 		std::string ReadText(const char* Key) const;
@@ -61,6 +63,8 @@ namespace winrt::BlazblueTrainer::implementation
 		bool IsGrantingPotentials{};
 		bool IsChangingPerfectGuard{};
 		bool IsUpdatingPerfectGuard{};
+		bool IsChangingEventAmplification{};
+		bool IsUpdatingEventAmplification{};
 	};
 }
 

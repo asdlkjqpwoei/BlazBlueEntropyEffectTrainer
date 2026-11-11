@@ -40,6 +40,10 @@ int RunLocalizationTests()
 		Texts.Translate("The current game does not expose a compatible perfect-guard API.", TrainerLanguageChinese) !=
 			"The current game does not expose a compatible perfect-guard API.",
 		"The perfect switch and compatibility failures must support both interface languages.");
+	Require(Texts.Text("event_amplification", TrainerLanguageEnglish) != Texts.Text("event_amplification", TrainerLanguageChinese) &&
+		Texts.Translate("The current game does not expose a compatible event-amplification API.", TrainerLanguageChinese) !=
+			"The current game does not expose a compatible event-amplification API.",
+		"The event-amplification switch and compatibility failures must support both interface languages.");
 	const auto ChineseCounts = Texts.Translate(PotentialCounts, TrainerLanguageChinese);
 	Require(ChineseCounts != PotentialCounts &&
 		Texts.Translate(ChineseCounts, TrainerLanguageEnglish) == PotentialCounts,
@@ -69,6 +73,14 @@ int RunLocalizationTests()
 		"Invalid languages must fail explicitly.");
 	Require(TrainerSetLanguage(Handle, TrainerLanguageChinese, Error.data(), Error.size()) != 0,
 		"Switching back to Chinese failed.");
+	Require(Snapshot.EventAmplificationEnabled == 0 &&
+		TrainerSetEventAmplification(Handle, 0, Error.data(), Error.size()) != 0,
+		"Event amplification must default to off and allow disabling while disconnected.");
+	Require(TrainerSetEventAmplification(Handle, 1, Error.data(), Error.size()) == 0 &&
+		std::string(Error.data()) == ChineseError,
+		"A disconnected event-amplification request must use the existing translated connection error.");
+	Require(TrainerSetEventAmplification(Handle, -1, Error.data(), Error.size()) == 0,
+		"An invalid event-amplification switch must be rejected.");
 	std::int32_t Writes = -1;
 	Require(TrainerApply(Handle, TrainerFeatureAp, TrainerOperationAdd, 1,
 		&Writes, Error.data(), Error.size()) == 0 && Writes == 0 &&

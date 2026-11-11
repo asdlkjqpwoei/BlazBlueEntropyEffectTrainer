@@ -67,6 +67,7 @@ struct TrainerSnapshot
 	char StatusMessage[512];
 	char DetailMessage[512];
 	std::uint32_t PerfectGuardEnabled;
+	std::uint32_t EventAmplificationEnabled;
 };
 
 struct TrainerPotentialResult
@@ -119,6 +120,10 @@ extern "C"
 		std::size_t ErrorBufferSize);
 
 	TRAINER_API std::int32_t __cdecl TrainerSetPerfectGuard(
+		TrainerEngine* Engine, std::int32_t Enabled,
+		char* ErrorBuffer, std::size_t ErrorBufferSize);
+
+	TRAINER_API std::int32_t __cdecl TrainerSetEventAmplification(
 		TrainerEngine* Engine, std::int32_t Enabled,
 		char* ErrorBuffer, std::size_t ErrorBufferSize);
 

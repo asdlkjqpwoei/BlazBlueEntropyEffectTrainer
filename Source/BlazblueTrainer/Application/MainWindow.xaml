@@ -96,13 +96,19 @@
 								</Grid>
 							</StackPanel>
 						</Border>
+						<Button x:Name="AllPotentialsButton" Content="获得当前角色全部潜能" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnGrantAllPotentialsClick" />
 						<Border Padding="10" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
 							<StackPanel Spacing="4">
 								<ToggleSwitch x:Name="PerfectGuardSwitch" Header="保持无伤判定（正常扣血）" OnContent="已开启" OffContent="已关闭" IsOn="False" IsEnabled="False" Toggled="OnPerfectGuardToggled" />
 								<TextBlock x:Name="PerfectGuardHint" FontSize="11" Opacity="0.65" TextWrapping="Wrap" />
 							</StackPanel>
 						</Border>
-						<Button x:Name="AllPotentialsButton" Content="获得当前角色全部潜能" HorizontalAlignment="Stretch" IsEnabled="False" Click="OnGrantAllPotentialsClick" />
+						<Border Padding="10" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
+							<StackPanel Spacing="4">
+								<ToggleSwitch x:Name="EventAmplificationSwitch" Header="事件房间必出意识增幅选项" OnContent="已开启" OffContent="已关闭" IsOn="False" IsEnabled="False" Toggled="OnEventAmplificationToggled" />
+								<TextBlock x:Name="EventAmplificationHint" FontSize="11" Opacity="0.65" TextWrapping="Wrap" />
+							</StackPanel>
+						</Border>
 						<TextBlock x:Name="OperationText" FontSize="12" TextWrapping="Wrap" MinHeight="16" />
 					</StackPanel>
 				</ScrollViewer>

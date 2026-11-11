@@ -15,14 +15,14 @@
 		<TrainerBridgeOptimization Condition="'$(Configuration)'!='Debug'">MaxSpeed</TrainerBridgeOptimization>
 	</PropertyGroup>
 	<ItemGroup>
-		<TrainerRuntimeSource Include="$(TrainerBridgeRoot)\PotentialBridge.cpp;$(TrainerBridgeRoot)\PerfectBridge.cpp;$(TrainerBridgeRoot)\PerfectHooks.cpp" />
+		<TrainerRuntimeSource Include="$(TrainerBridgeRoot)\PotentialBridge.cpp;$(TrainerBridgeRoot)\PerfectBridge.cpp;$(TrainerBridgeRoot)\PerfectHooks.cpp;$(TrainerBridgeRoot)\EventAmplificationBridge.cpp" />
 		<TrainerRuntimeHeader Include="$(TrainerBridgeRoot)\*.h;$(TrainerSourceRoot)\Source\BlazblueTrainer\Core\*.h" />
 		<ClCompile Include="@(TrainerRuntimeSource)">
 			<ExcludedFromBuild>true</ExcludedFromBuild>
 			<PrecompiledHeader>NotUsing</PrecompiledHeader>
 			<AdditionalIncludeDirectories>$(TrainerSourceRoot)\Source\BlazblueTrainer\Core;$(ProjectDir);$(TrainerMinHookInclude);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
 		</ClCompile>
-		<ClInclude Include="$(TrainerBridgeRoot)\PerfectHooks.h" />
+		<ClInclude Include="$(TrainerBridgeRoot)\*.h" />
 		<None Include="$(TrainerSourceRoot)\Source\BlazblueTrainer\Scripts\GrantAllPotentials.js" />
 	</ItemGroup>
 	<Target Name="GenerateTrainerPotentialScript" Inputs="$(TrainerSourceRoot)\Source\BlazblueTrainer\Scripts\GrantAllPotentials.js;$(TrainerSourceRoot)\CMake\PotentialScript.h.in;$(TrainerSourceRoot)\CMake\GeneratePotentialScript.cmake" Outputs="$(TrainerScriptHeader)">

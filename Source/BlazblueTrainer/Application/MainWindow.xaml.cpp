@@ -178,6 +178,10 @@ namespace winrt::BlazblueTrainer::implementation
 		PerfectGuardSwitch().OnContent(box_value(Utf8ToHString(ReadText("perfect_on"))));
 		PerfectGuardSwitch().OffContent(box_value(Utf8ToHString(ReadText("perfect_off"))));
 		PerfectGuardHint().Text(Utf8ToHString(ReadText("perfect_hint")));
+		EventAmplificationSwitch().Header(box_value(Utf8ToHString(ReadText("event_amplification"))));
+		EventAmplificationSwitch().OnContent(box_value(Utf8ToHString(ReadText("perfect_on"))));
+		EventAmplificationSwitch().OffContent(box_value(Utf8ToHString(ReadText("perfect_off"))));
+		EventAmplificationHint().Text(Utf8ToHString(ReadText("event_amplification_hint")));
 		RuntimeTab().Header(box_value(Utf8ToHString(ReadText("tab_runtime"))));
 		OfflineTab().Header(box_value(Utf8ToHString(ReadText("databody_open"))));
 		get_self<DataBodyEditor>(OfflineEditor())->SetLanguage(InterfaceLanguage);
@@ -319,6 +323,14 @@ namespace winrt::BlazblueTrainer::implementation
 			PerfectGuardSwitch().IsOn(Snapshot.PerfectGuardEnabled != 0);
 			IsUpdatingPerfectGuard = false;
 		}
+		EventAmplificationSwitch().IsEnabled(!IsChangingEventAmplification &&
+			(Snapshot.EventAmplificationEnabled || (Verified && Snapshot.ProcessId != 0)));
+		if (!IsChangingEventAmplification)
+		{
+			IsUpdatingEventAmplification = true;
+			EventAmplificationSwitch().IsOn(Snapshot.EventAmplificationEnabled != 0);
+			IsUpdatingEventAmplification = false;
+		}
 		if (NativeBehavior)
 			NativeBehavior->SetGameState(Snapshot.ProcessId, {Refresh, Exchange, Ap, Potentials});
 	}
@@ -394,6 +406,27 @@ namespace winrt::BlazblueTrainer::implementation
 		if (!(co_await ResumeOnUi{Queue}) || IsShuttingDown) co_return;
 		IsChangingPerfectGuard = false;
 		ShowOperationMessage(Applied ? ReadText(Enable ? "perfect_enabled" : "perfect_disabled") : Error.data());
+		UpdateSnapshot();
+	}
+
+	fire_and_forget MainWindow::OnEventAmplificationToggled(
+		Windows::Foundation::IInspectable const&, Microsoft::UI::Xaml::RoutedEventArgs const&)
+	{
+		if (IsApplyingLanguage || IsUpdatingEventAmplification || IsChangingEventAmplification || IsShuttingDown || !EngineHandle)
+			co_return;
+		const auto Lifetime = get_strong();
+		const auto Queue = Microsoft::UI::Dispatching::DispatcherQueue::GetForCurrentThread();
+		const auto Engine = EngineHandle;
+		const bool Enable = EventAmplificationSwitch().IsOn();
+		IsChangingEventAmplification = true;
+		ShowOperationMessage(ReadText("event_amplification_busy"));
+		UpdateSnapshot();
+		std::array<char, 4096> Error{};
+		co_await resume_background();
+		const bool Applied = TrainerSetEventAmplification(Engine.get(), Enable ? 1 : 0, Error.data(), Error.size()) != 0;
+		if (!(co_await ResumeOnUi{Queue}) || IsShuttingDown) co_return;
+		IsChangingEventAmplification = false;
+		ShowOperationMessage(Applied ? ReadText(Enable ? "event_amplification_enabled" : "event_amplification_disabled") : Error.data());
 		UpdateSnapshot();
 	}
 

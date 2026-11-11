@@ -226,6 +226,29 @@ extern "C"
 		}
 	}
 
+	TRAINER_API std::int32_t __cdecl TrainerSetEventAmplification(
+		TrainerEngine* Engine, std::int32_t Enabled, char* ErrorBuffer, std::size_t ErrorBufferSize)
+	{
+		if (!Engine || (Enabled != 0 && Enabled != 1))
+		{
+			const std::string Message = "A trainer engine and a valid event-amplification switch are required.";
+			CopyError(ErrorBuffer, ErrorBufferSize, Engine ? Engine->Implementation.Translate(Message) : Message);
+			return 0;
+		}
+		try
+		{
+			std::string Error;
+			const bool Applied = Engine->Implementation.SetEventAmplification(Enabled != 0, Error);
+			CopyError(ErrorBuffer, ErrorBufferSize, Engine->Implementation.Translate(Error));
+			return Applied ? 1 : 0;
+		}
+		catch (const std::exception& Failure)
+		{
+			CopyError(ErrorBuffer, ErrorBufferSize, Engine->Implementation.Translate(Failure.what()));
+			return 0;
+		}
+	}
+
 	TRAINER_API std::int32_t __cdecl TrainerGetText(
 		TrainerEngine* Engine,
 		const char* Key,

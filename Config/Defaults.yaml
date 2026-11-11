@@ -12,6 +12,8 @@ monitor:
   process_check_ms: 2000
   value_check_ms: 750
   rescan_ms: 15000
+  # Retry interval when model classes are cached but required run data is still missing.
+  # Once every configured resource is captured, scheduled scans stop until invalidation.
   stable_rescan_ms: 60000
   scan_chunk_bytes: 1048576
   max_scan_mib: 2048
@@ -143,6 +145,11 @@ texts:
   perfect_busy: {zh-CN: '正在切换无伤判定保护…', en-US: 'Updating perfect-status protection…'}
   perfect_enabled: {zh-CN: '无伤判定保护已开启，角色仍会正常扣血。', en-US: 'Perfect-status protection is on. HP damage remains normal.'}
   perfect_disabled: {zh-CN: '无伤判定保护已关闭，后续受伤恢复正常统计。', en-US: 'Perfect-status protection is off. Future hits count normally.'}
+  event_amplification: {zh-CN: '事件房间必出意识增幅选项', en-US: 'Guarantee an amplification option in event rooms'}
+  event_amplification_hint: {zh-CN: '单人育成的普通事件房间：新生成的选项至少包含一项意识增幅。无可用增幅事件时补入游戏已有的无条件增幅选项；已生成的选项不重抽。', en-US: 'Single-player training, ordinary event rooms: newly generated choices include an amplification option. Uses an existing unconditional option if the pool has none available. Existing choices are not rerolled.'}
+  event_amplification_busy: {zh-CN: '正在切换事件房间意识增幅选项…', en-US: 'Updating event-room amplification choices…'}
+  event_amplification_enabled: {zh-CN: '已开启：之后生成的普通事件房间选项必含意识增幅。', en-US: 'Enabled: future ordinary event-room choices include amplification.'}
+  event_amplification_disabled: {zh-CN: '已关闭：之后生成的事件选项恢复随机。', en-US: 'Disabled: future event choices use normal randomness.'}
   ap_unavailable: {zh-CN: '当前配置未提供已验证的 AP 活动模型；不会修改 AP。', en-US: 'No verified AP model is configured; AP will not be modified.'}
   set: {zh-CN: '设置', en-US: 'Set'}
   add: {zh-CN: '增加', en-US: 'Add'}
@@ -391,3 +398,14 @@ diagnostics:
   perfect_invalid_switch: {zh-CN: '需要修改器引擎和有效的无伤保护开关值。', en-US: 'A trainer engine and a valid perfect-guard switch are required.'}
   perfect_hook: {zh-CN: '无伤保护拦截：', en-US: 'Perfect guard hook: '}
   perfect_system: {zh-CN: '无伤保护：', en-US: 'Perfect guard: '}
+  event_amplification_request_busy: {zh-CN: '已有事件增幅请求正在执行。', en-US: 'An event-amplification request is already in progress.'}
+  event_amplification_cancelled: {zh-CN: '事件增幅请求已取消。', en-US: 'The event-amplification request was cancelled.'}
+  event_amplification_nonce: {zh-CN: '无法创建唯一的事件增幅请求。', en-US: 'Cannot create a unique event-amplification request.'}
+  event_amplification_not_enabled: {zh-CN: '游戏未能开启事件房间意识增幅选项。', en-US: 'The game did not enable event amplification.'}
+  event_amplification_incompatible: {zh-CN: '当前游戏未提供兼容的事件房间意识增幅接口。', en-US: 'The current game does not expose a compatible event-amplification API.'}
+  event_amplification_bridge_old: {zh-CN: '另一版本的事件增幅模块已加载，请重启游戏以使用此版本。', en-US: 'Another event-amplification bridge is already loaded; restart the game to use this build.'}
+  event_amplification_resident: {zh-CN: '事件增幅模块无法保持加载。', en-US: 'The event-amplification bridge could not remain loaded.'}
+  event_amplification_other_trainer: {zh-CN: '另一个修改器已在维持事件房间意识增幅选项。', en-US: 'Another trainer is already maintaining event amplification.'}
+  event_amplification_invalid_switch: {zh-CN: '需要修改器引擎和有效的事件增幅开关值。', en-US: 'A trainer engine and a valid event-amplification switch are required.'}
+  event_amplification_adapter: {zh-CN: '事件增幅适配失败：', en-US: 'The event-amplification adapter failed: '}
+  event_amplification_system: {zh-CN: '事件增幅：', en-US: 'Event amplification: '}

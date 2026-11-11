@@ -53,6 +53,4 @@
 *.g.hpp
 *.log
 ipch/
-
-feasibility.md
-implementation_verification.md
+Notice.md

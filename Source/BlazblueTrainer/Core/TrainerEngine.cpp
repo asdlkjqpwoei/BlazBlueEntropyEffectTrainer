@@ -1,5 +1,6 @@
 #include "TrainerEngine.h"
 #include "Text.h"
+#include "ScanSchedule.h"
 
 #include "Operations.h"
 #include "AllPotentials.h"
@@ -270,10 +271,12 @@ namespace Trainer
 		{
 			MonitorThread.request_stop();
 			PerfectProtection.Disable();
+			AmplificationEvents.Disable();
 			WakeEvent.notify_all();
 			MonitorThread.join();
 		}
 		PerfectProtection.Disable();
+		AmplificationEvents.Disable();
 
 		std::lock_guard Lock(StateMutex);
 		ConnectedProcess.reset();
@@ -306,6 +309,7 @@ namespace Trainer
 		std::lock_guard Lock(StateMutex);
 		auto Result = CachedSnapshot;
 		Result.PerfectGuardEnabled = PerfectProtection.Enabled(Result.ProcessId) ? 1u : 0u;
+		Result.EventAmplificationEnabled = AmplificationEvents.Enabled(Result.ProcessId) ? 1u : 0u;
 		return Result;
 	}
 
@@ -356,6 +360,7 @@ namespace Trainer
 		bool ScanInProgress)
 	{
 		if (!KeepPerfectGuardForStatus(State, ProcessDetected)) PerfectProtection.Disable();
+		if (!KeepEventAmplificationForStatus(State, ProcessDetected)) AmplificationEvents.Disable();
 		std::lock_guard Lock(StateMutex);
 		CachedSnapshot.State = State;
 		CachedSnapshot.ProcessDetected = ProcessDetected ? 1u : 0u;
@@ -370,9 +375,8 @@ namespace Trainer
 	void Engine::Run(std::stop_token StopToken)
 	{
 		auto NextProcessCheck = Clock::now();
-		auto NextScan = Clock::now();
+		ScanSchedule Scans;
 		auto NextValueCheck = Clock::now();
-		bool ScanRequested = true;
 		std::string AttachDetail;
 
 		try
@@ -417,7 +421,7 @@ namespace Trainer
 						}
 					}
 					Process.reset();
-					ScanRequested = true;
+					Scans.Reset();
 					SetStatus(
 						TrainerStateWaiting,
 						Text("waiting"),
@@ -465,8 +469,7 @@ namespace Trainer
 						}
 						Process = Attach.Process;
 						AttachDetail = Attach.Message;
-						ScanRequested = true;
-						NextScan = Now;
+						Scans.Reset();
 						SetStatus(
 							TrainerStateChecking,
 							Text("checking"),
@@ -525,27 +528,28 @@ namespace Trainer
 						std::lock_guard Lock(StateMutex);
 						RuntimeRescanRequested = PuertsModelRescanRequested;
 					}
-					if (ScanRequested || RuntimeRescanRequested || Current >= NextScan)
+					if (RuntimeRescanRequested) Scans.Observe(Current, false, true);
+					if (Scans.Due(Current))
 					{
 						const bool NeedsRetry = PerformScan(Process, StopToken);
-						ScanRequested = false;
 						const std::uint32_t Delay = NeedsRetry
 							? Settings.Monitor.RescanMs
 							: Settings.Monitor.StableRescanMs;
-						NextScan = Clock::now() + std::chrono::milliseconds(Delay);
+						Scans.ScanFinished(Clock::now(), AllResourcesCaptured(Snapshot(), Settings.PuertsAp.has_value()),
+							std::chrono::milliseconds(Delay));
 						NextValueCheck = Clock::now();
 					}
 
 					if (Clock::now() >= NextValueCheck)
 					{
 						const bool CandidatesLost = RefreshSnapshot(Process);
-						if (CandidatesLost)
+						bool ModelLost = false;
 						{
-							const auto RetryTime = Settings.PuertsRuntime
-								? Clock::now()
-								: Clock::now() + std::chrono::milliseconds(Settings.Monitor.RescanMs);
-							NextScan = std::min(NextScan, RetryTime);
+							std::lock_guard Lock(StateMutex);
+							ModelLost = PuertsModelRescanRequested;
 						}
+						const bool Complete = AllResourcesCaptured(Snapshot(), Settings.PuertsAp.has_value());
+						Scans.Observe(Clock::now(), Complete, ModelLost || (CandidatesLost && !Complete));
 						NextValueCheck = Clock::now() +
 							std::chrono::milliseconds(Settings.Monitor.ValueCheckMs);
 					}
@@ -827,6 +831,7 @@ namespace Trainer
 			!ScanComplete ||
 			RequiredTypesMissing ||
 			!ScanError.empty() ||
+			ExchangeCount == 0 ||
 			(RefreshCount == 0 && DynamicRefreshSeedCount == 0);
 
 		std::ostringstream Detail;
@@ -994,7 +999,8 @@ namespace Trainer
 	}
 
 	void Engine::UpdatePuertsRuntimeCandidates(
-		const std::shared_ptr<RemoteProcess>& Process)
+		const std::shared_ptr<RemoteProcess>& Process,
+		bool CaptureRefresh, bool CaptureExchange, bool CaptureAp)
 	{
 		std::vector<std::uintptr_t> Constructors;
 		std::vector<std::uintptr_t> ApConstructors;
@@ -1036,20 +1042,22 @@ namespace Trainer
 		};
 		for (const auto Constructor : Constructors)
 		{
+			if (!CaptureRefresh && !CaptureExchange) break;
 			if (!Reader.IsModelConstructor(Constructor))
 			{
 				ConstructorLost = true;
 				continue;
 			}
-			Append(Refresh, Reader.ResolveResource(
+			if (CaptureRefresh) Append(Refresh, Reader.ResolveResource(
 				Constructor, Settings.PuertsArray->ResourceIndex, Settings.Monitor.MaxRefreshValue),
 				Settings.Monitor.MaxRefreshValue);
-			Append(Exchange, Reader.ResolveResource(
+			if (CaptureExchange) Append(Exchange, Reader.ResolveResource(
 				Constructor, *Settings.ExchangePuertsIndex, Settings.Monitor.MaxResourceValue),
 				Settings.Monitor.MaxResourceValue);
 		}
 		for (const auto Constructor : ApConstructors)
 		{
+			if (!CaptureAp) break;
 			if (!Reader.IsApModelConstructor(Constructor))
 			{
 				ConstructorLost = true;
@@ -1061,10 +1069,10 @@ namespace Trainer
 		std::lock_guard Lock(StateMutex);
 		if (ConnectedProcess == Process)
 		{
-			RefreshCandidates = std::move(Refresh);
-			ExchangeCandidates = std::move(Exchange);
-			ApCandidates = std::move(Ap);
-			PuertsModelRescanRequested = ConstructorLost;
+			if (CaptureRefresh) RefreshCandidates = std::move(Refresh);
+			if (CaptureExchange) ExchangeCandidates = std::move(Exchange);
+			if (CaptureAp) ApCandidates = std::move(Ap);
+			PuertsModelRescanRequested = PuertsModelRescanRequested || ConstructorLost;
 		}
 	}
 
@@ -1073,7 +1081,6 @@ namespace Trainer
 	{
 		if (Settings.PuertsRuntime)
 		{
-			UpdatePuertsRuntimeCandidates(Process);
 			return;
 		}
 		static constexpr std::size_t PollBatchSize = 4096;
@@ -2427,71 +2434,65 @@ namespace Trainer
 
 	bool Engine::RefreshSnapshot(const std::shared_ptr<RemoteProcess>& Process)
 	{
-		UpdateDynamicRefreshCandidates(Process);
-
-		std::vector<Candidate> Refresh;
-		std::vector<Candidate> Exchange;
-		std::vector<Candidate> Ap;
+		TrainerSnapshot Previous{};
+		TrainerFeatureSnapshot RefreshSummary{}, ExchangeSummary{}, ApSummary{};
 		std::size_t DynamicSeedCount = 0;
 		bool DynamicScanTruncated = false;
-		{
-			std::lock_guard Lock(StateMutex);
-			if (ConnectedProcess != Process)
+		const auto ReadCurrent = [&] {
+			std::vector<Candidate> Refresh, Exchange, Ap;
 			{
-				return false;
+				std::lock_guard Lock(StateMutex);
+				if (ConnectedProcess != Process) return false;
+				Previous = CachedSnapshot;
+				Refresh = RefreshCandidates.empty() ? DynamicRefreshCandidates : RefreshCandidates;
+				Exchange = ExchangeCandidates;
+				Ap = ApCandidates;
+				DynamicSeedCount = DynamicRefreshTrackers.size();
+				DynamicScanTruncated = DynamicRefreshScanTruncated;
 			}
-			Refresh = RefreshCandidates;
-			if (Refresh.empty())
-			{
-				Refresh = DynamicRefreshCandidates;
-			}
-			Exchange = ExchangeCandidates;
-			Ap = ApCandidates;
-			DynamicSeedCount = DynamicRefreshTrackers.size();
-			DynamicScanTruncated = DynamicRefreshScanTruncated;
-		}
-
-		auto Collect = [&](const std::vector<Candidate>& Candidates)
-		{
-			std::vector<std::int64_t> Values;
-			Values.reserve(Candidates.size());
-			for (const Candidate& Candidate : Candidates)
-			{
-				std::int64_t Value = 0;
-				if (ReadCandidate(Candidate, Process, Value))
+			const auto Collect = [&](const std::vector<Candidate>& Candidates) {
+				std::vector<std::int64_t> Values;
+				Values.reserve(Candidates.size());
+				for (const Candidate& Candidate : Candidates)
 				{
-					Values.push_back(Value);
+					std::int64_t Value = 0;
+					if (ReadCandidate(Candidate, Process, Value)) Values.push_back(Value);
 				}
-			}
-			return Values;
+				return Values;
+			};
+			RefreshSummary = Summarize(Collect(Refresh), Refresh, Settings.Monitor.MaxWriteCandidates, true);
+			ExchangeSummary = Summarize(Collect(Exchange), Exchange, Settings.Monitor.MaxWriteCandidates,
+				Settings.PuertsRuntime.has_value());
+			ApSummary = Summarize(Collect(Ap), Ap, Settings.Monitor.MaxWriteCandidates, true);
+			return true;
 		};
-
-		const std::vector<std::int64_t> RefreshValues = Collect(Refresh);
-		const std::vector<std::int64_t> ExchangeValues = Collect(Exchange);
-		const std::vector<std::int64_t> ApValues = Collect(Ap);
-		const TrainerFeatureSnapshot RefreshSummary = Summarize(
-			RefreshValues,
-			Refresh,
-			Settings.Monitor.MaxWriteCandidates,
-			true);
-		const TrainerFeatureSnapshot ExchangeSummary = Summarize(
-			ExchangeValues,
-			Exchange,
-			Settings.Monitor.MaxWriteCandidates,
-			Settings.PuertsRuntime.has_value());
-		const TrainerFeatureSnapshot ApSummary = Summarize(
-			ApValues, Ap, Settings.Monitor.MaxWriteCandidates, true);
+		if (!ReadCurrent()) return false;
+		const auto Lost = [&] {
+			const auto Invalid = [](const TrainerFeatureSnapshot& Before, const TrainerFeatureSnapshot& After) {
+				return (Before.AddressCount && !After.AddressCount) || (Before.WriteEnabled && !After.WriteEnabled);
+			};
+			return Invalid(Previous.Refresh, RefreshSummary) || Invalid(Previous.Exchange, ExchangeSummary) ||
+				Invalid(Previous.Ap, ApSummary);
+		};
+		bool CandidatesLost = Lost();
+		const bool CaptureRefresh = !RefreshSummary.WriteEnabled;
+		const bool CaptureExchange = !ExchangeSummary.WriteEnabled;
+		const bool CaptureAp = Settings.PuertsAp && !ApSummary.WriteEnabled;
+		if (Settings.PuertsRuntime && (CaptureRefresh || CaptureExchange || CaptureAp))
+		{
+			// Resolve only missing or invalid targets; valid cached owners are retained.
+			UpdatePuertsRuntimeCandidates(Process, CaptureRefresh, CaptureExchange, CaptureAp);
+			if (!ReadCurrent()) return false;
+		}
+		else if (!Settings.PuertsRuntime && CaptureRefresh)
+		{
+			UpdateDynamicRefreshCandidates(Process);
+			if (!ReadCurrent()) return false;
+		}
+		CandidatesLost = CandidatesLost || Lost();
 
 		std::lock_guard Lock(StateMutex);
-		if (ConnectedProcess != Process)
-		{
-			return false;
-		}
-
-		const bool CandidatesLost =
-			(CachedSnapshot.Refresh.AddressCount != 0 && RefreshSummary.AddressCount == 0) ||
-			(CachedSnapshot.Exchange.AddressCount != 0 && ExchangeSummary.AddressCount == 0) ||
-			(CachedSnapshot.Ap.AddressCount != 0 && ApSummary.AddressCount == 0);
+		if (ConnectedProcess != Process) return false;
 		CachedSnapshot.Refresh = RefreshSummary;
 		CachedSnapshot.Exchange = ExchangeSummary;
 		CachedSnapshot.Ap = ApSummary;
@@ -2499,20 +2500,13 @@ namespace Trainer
 			ApSummary.AddressCount == 0)
 		{
 			CachedSnapshot.State = TrainerStateScanning;
-			CopyUtf8(
-				CachedSnapshot.StatusMessage,
-				sizeof(CachedSnapshot.StatusMessage),
-				DynamicSeedCount != 0 && !DynamicScanTruncated
-					? Text("refresh_calibrating")
-					: Text("no_targets"));
+			CopyUtf8(CachedSnapshot.StatusMessage, sizeof(CachedSnapshot.StatusMessage),
+				DynamicSeedCount != 0 && !DynamicScanTruncated ? Text("refresh_calibrating") : Text("no_targets"));
 		}
 		else
 		{
 			CachedSnapshot.State = TrainerStateReady;
-			CopyUtf8(
-				CachedSnapshot.StatusMessage,
-				sizeof(CachedSnapshot.StatusMessage),
-				Text("ready"));
+			CopyUtf8(CachedSnapshot.StatusMessage, sizeof(CachedSnapshot.StatusMessage), Text("ready"));
 		}
 		return CandidatesLost;
 	}
@@ -2534,6 +2528,25 @@ namespace Trainer
 			StopToken = MonitorThread.get_stop_token();
 		}
 		return PerfectProtection.Enable(Process->ProcessId(), Error, StopToken);
+	}
+
+	bool Engine::SetEventAmplification(bool Enabled, std::string& Error)
+	{
+		Error.clear();
+		if (!Enabled) { AmplificationEvents.Disable(); return true; }
+		std::shared_ptr<RemoteProcess> Process;
+		std::stop_token StopToken;
+		{
+			std::lock_guard Lock(StateMutex);
+			Process = ConnectedProcess;
+			if (!IsRunning.load() || !Process || !CachedSnapshot.BuildVerified || !Process->IsAlive())
+			{
+				Error = "A compatible game process is not connected.";
+				return false;
+			}
+			StopToken = MonitorThread.get_stop_token();
+		}
+		return AmplificationEvents.Enable(Process->ProcessId(), Error, StopToken);
 	}
 
 	bool Engine::GrantAllPotentials(TrainerPotentialResult& Result, std::string& Error)

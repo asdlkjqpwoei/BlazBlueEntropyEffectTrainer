@@ -6,6 +6,8 @@ int RunCoreTests();
 int RunPuertsRuntimeTests();
 int RunPotentialTests();
 int RunPerfectTests();
+int RunEventAmplificationTests();
+int RunEventAmplificationRuntimeProbe(int ArgumentCount, char** Arguments);
 int RunHotkeyTests();
 int RunWindowTests();
 int RunWindowIntegration();
@@ -15,6 +17,7 @@ int RunFeedbackTests();
 int RunAudioProbe();
 int RunEditorPerformance(int ArgumentCount, char** Arguments);
 int RunResponsivenessTests();
+int RunScanScheduleTests();
 int RunDataBodyProbe(int ArgumentCount, char** Arguments);
 int RunRuntimeProbe(int ArgumentCount, char** Arguments);
 int RunEngineProbe(int ArgumentCount, char** Arguments);
@@ -28,6 +31,8 @@ int main(int ArgumentCount, char** Arguments)
 	{
 		if (ArgumentCount > 1)
 		{
+			if (std::strcmp(Arguments[1], "--event-amplification-runtime-probe") == 0)
+				return RunEventAmplificationRuntimeProbe(ArgumentCount - 1, Arguments + 1);
 			if (std::strcmp(Arguments[1], "--editor-performance") == 0)
 				return RunEditorPerformance(ArgumentCount - 1, Arguments + 1);
 			if (std::strcmp(Arguments[1], "--audio-probe") == 0)
@@ -53,16 +58,18 @@ int main(int ArgumentCount, char** Arguments)
 		const int RuntimeResult = RunPuertsRuntimeTests();
 		const int PotentialResult = RunPotentialTests();
 		const int PerfectResult = RunPerfectTests();
+		const int EventAmplificationResult = RunEventAmplificationTests();
 		const int HotkeyResult = RunHotkeyTests();
 		const int WindowResult = RunWindowTests();
 		const int LanguageResult = RunLocalizationTests();
 		const int SaveResult = RunSaveTests();
 		const int FeedbackResult = RunFeedbackTests();
 		const int ResponsivenessResult = RunResponsivenessTests();
-		if (CoreResult || RuntimeResult || PotentialResult || PerfectResult || HotkeyResult || WindowResult || LanguageResult ||
-			SaveResult || FeedbackResult || ResponsivenessResult)
+		const int ScanScheduleResult = RunScanScheduleTests();
+		if (CoreResult || RuntimeResult || PotentialResult || PerfectResult || EventAmplificationResult || HotkeyResult || WindowResult || LanguageResult ||
+			SaveResult || FeedbackResult || ResponsivenessResult || ScanScheduleResult)
 			return 1;
-		std::cout << "Core, runtime ownership, localization, shortcuts/audio, offline saves, and DPI/window tests passed.\n";
+		std::cout << "Core, runtime ownership, scan scheduling, localization, shortcuts/audio, offline saves, and DPI/window tests passed.\n";
 		return 0;
 	}
 	catch (const std::exception& Error)

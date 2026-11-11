@@ -59,6 +59,8 @@ namespace Trainer
 			"title_refresh", "title_exchange", "title_ap", "ap_unavailable", "set", "add",
 			"potentials_grant", "potentials_hint", "potentials_busy", "potentials_already_owned",
 			"perfect_guard", "perfect_on", "perfect_off", "perfect_hint", "perfect_busy", "perfect_enabled", "perfect_disabled",
+			"event_amplification", "event_amplification_hint", "event_amplification_busy",
+			"event_amplification_enabled", "event_amplification_disabled",
 			"refresh_hint", "process_connected", "process_waiting", "value_detected",
 			"value_blocked", "value_not_detected", "value_safety_blocked", "input_error",
 			"operation_succeeded", "operation_no_address", "operation_safety_error",

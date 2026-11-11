@@ -28,7 +28,7 @@ if(NOT DEFINED VCPKG_TARGET_TRIPLET)
 	set(VCPKG_TARGET_TRIPLET "x64-windows-static-md" CACHE STRING "vcpkg triplet")
 endif()
 
-project(BlazblueTrainer VERSION 0.2.0 LANGUAGES CXX)
+project(BlazblueTrainer LANGUAGES CXX)
 if(NOT WIN32 OR NOT MSVC OR NOT CMAKE_GENERATOR MATCHES "Visual Studio" OR
 	NOT CMAKE_VS_PLATFORM_NAME STREQUAL "x64")
 	message(FATAL_ERROR "This WinUI application requires a Visual Studio MSVC x64 generator.")
@@ -63,6 +63,7 @@ set(TrainerSources
 	"${TrainerDirectory}/Core/Config.cpp"
 	"${TrainerDirectory}/Core/DataBodyCatalog.cpp"
 	"${TrainerDirectory}/Core/DataBodySave.cpp"
+	"${TrainerDirectory}/Core/EventAmplification.cpp"
 	"${TrainerDirectory}/Core/GameData.cpp"
 	"${TrainerDirectory}/Core/GamePresenceMonitor.cpp"
 	"${TrainerDirectory}/Core/Hotkeys.cpp"
@@ -173,8 +174,11 @@ if(BUILD_TESTING)
 	if(NodeExecutable)
 		add_test(NAME PotentialScriptTests COMMAND "${NodeExecutable}"
 			"${TestDirectory}/PotentialScriptTests.js" "${PotentialScript}")
+		add_test(NAME EventAmplificationScriptTests COMMAND "${NodeExecutable}"
+			"${TestDirectory}/EventAmplificationScriptTests.js"
+			"${TrainerDirectory}/Bridge/EventAmplificationScript.h")
 	else()
-		message(WARNING "Node.js was not found; the potential-script regression tests are not registered.")
+		message(WARNING "Node.js was not found; the script regression tests are not registered.")
 	endif()
 	get_target_property(YamlType yaml-cpp::yaml-cpp TYPE)
 	if(YamlType STREQUAL "SHARED_LIBRARY")
